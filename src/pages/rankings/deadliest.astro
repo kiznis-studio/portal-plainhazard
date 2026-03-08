@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getTopStatesByFatalities, fmtDamage, fmtNumber } from '../../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const states = await getTopStatesByFatalities(db, 56);
+---
+
+<Base
+  title="Deadliest States — Storm-Related Fatalities"
+  description={`U.S. states ranked by storm-related fatalities from severe weather events. NOAA Storm Events data (2015-2025).`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Rankings', href: '/rankings/most-disasters' },
+    { name: 'Deadliest' },
+  ]}
+>
+  <section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Deadliest States</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+      U.S. states and territories ranked by storm-related fatalities from NOAA storm events (2015-2025).
+    </p>
+    <div class="mt-2 flex gap-3 text-sm">
+      <a href="/rankings/most-disasters" class="text-gray-500 hover:underline dark:text-gray-400">Most Disasters</a>
+      <a href="/rankings/most-damage" class="text-gray-500 hover:underline dark:text-gray-400">Most Damage</a>
+      <span class="font-semibold text-brand-600 dark:text-brand-400">Deadliest</span>
+    </div>
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Storm Events</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {states.map((s, i) => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+              <td class="px-3 py-3">
+                <a href={`/state/${s.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">{s.name}</a>
+                <span class="ml-1 text-xs text-gray-400">({s.code})</span>
+              </td>
+              <td class="px-3 py-3 text-right font-mono font-bold text-gray-900 dark:text-gray-100">{fmtNumber(s.total_fatalities)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.total_injuries)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.total_storm_events)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(s.total_property_damage)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-6 text-xs text-gray-400 dark:text-gray-500">
+      Source: NOAA NCEI Storm Events Database (2015-2025). Fatality counts include both direct and indirect storm-related deaths.
+    </p>
+  </section>
+</Base>

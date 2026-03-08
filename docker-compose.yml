@@ -1,0 +1,13 @@
+services:
+  portal-plainhazard:
+    build: .
+    container_name: portal-plainhazard
+    ports:
+      - "4321:4321"
+    volumes:
+      - /storage/plainhazard/plainhazard.db:/data/portal.db:ro
+    environment:
+      - DATABASE_PATH=/data/portal.db
+      - HOST=0.0.0.0
+      - PORT=4321
+    restart: unless-stopped

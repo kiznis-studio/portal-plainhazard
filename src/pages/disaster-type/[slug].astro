@@ -1,0 +1,162 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getDisasterType, getDisastersByType, fmtNumber } from '../../lib/db';
+
+const { slug } = Astro.params;
+const db = (Astro.locals as any).runtime.env.DB;
+
+const dtype = await getDisasterType(db, slug!);
+if (!dtype) return Astro.redirect('/404');
+
+const disasters = await getDisastersByType(db, dtype.incident_type);
+
+// Group by state
+const stateMap = new Map<string, number>();
+for (const d of disasters) {
+  stateMap.set(d.state, (stateMap.get(d.state) || 0) + 1);
+}
+const stateList = [...stateMap.entries()]
+  .map(([state, count]) => ({ state, count }))
+  .sort((a, b) => b.count - a.count);
+
+// Group by year
+const yearMap = new Map<number, number>();
+for (const d of disasters) {
+  yearMap.set(d.fiscal_year, (yearMap.get(d.fiscal_year) || 0) + 1);
+}
+const yearList = [...yearMap.entries()]
+  .map(([year, count]) => ({ year, count }))
+  .sort((a, b) => b.year - a.year);
+---
+
+<Base
+  title={`${dtype.incident_type} Disasters — FEMA Declarations`}
+  description={`${dtype.incident_type}: ${fmtNumber(dtype.total_count)} FEMA disaster declarations across ${dtype.state_count} states from ${dtype.earliest_year} to ${dtype.latest_year}.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Disaster Types', href: '/disaster-types/' },
+    { name: dtype.incident_type },
+  ]}
+>
+  <section class="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+    <div class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+      <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/" class="hover:underline">Home</a>
+        <span>/</span>
+        <a href="/disaster-types/" class="hover:underline">Disaster Types</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-gray-100">{dtype.incident_type}</span>
+      </div>
+      <h1 class="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100 md:text-4xl">{dtype.incident_type} Disasters</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">
+        FEMA disaster declarations classified as "{dtype.incident_type}" from {dtype.earliest_year} to {dtype.latest_year}.
+      </p>
+
+      <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Total Declarations</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(dtype.total_count)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">States Affected</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{dtype.state_count}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Earliest</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{dtype.earliest_year}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Latest</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{dtype.latest_year}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <!-- By State -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Declarations by State</h2>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+              <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Declarations</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stateList.map((s, i) => (
+              <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+                <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{s.state}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(s.count)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- By Year -->
+    {yearList.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Declarations by Year</h2>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Year</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Declarations</th>
+              </tr>
+            </thead>
+            <tbody>
+              {yearList.map(y => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{y.year}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(y.count)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <!-- Recent Declarations -->
+    {disasters.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent {dtype.incident_type} Declarations</h2>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">DR#</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Title</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Type</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {disasters.slice(0, 30).map(d => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3 font-mono text-xs text-gray-500 dark:text-gray-400">{d.disaster_number}</td>
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{d.title}</td>
+                  <td class="px-3 py-3 text-gray-600 dark:text-gray-400">{d.state}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{d.declaration_type}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{d.declaration_date?.split('T')[0] || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <p class="text-xs text-gray-400 dark:text-gray-500">
+      Source: FEMA OpenFEMA Disaster Declarations Summaries v2. For informational purposes only.
+    </p>
+  </div>
+</Base>

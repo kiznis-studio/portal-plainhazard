@@ -1,0 +1,64 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getAllCounties, fmtNumber } from '../../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const counties = await getAllCounties(db);
+---
+
+<Base
+  title="All Counties — Disaster Data by County"
+  description={`Browse FEMA disaster data for ${fmtNumber(counties.length)} U.S. counties. See disaster counts, types, and timelines.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Counties' },
+  ]}
+>
+  <section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">All Counties</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+      FEMA disaster declaration data for {fmtNumber(counties.length)} U.S. counties, ranked by total disaster count.
+    </p>
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">County</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Disasters</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Major</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Top Hazard</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Latest</th>
+          </tr>
+        </thead>
+        <tbody>
+          {counties.slice(0, 500).map((c, i) => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+              <td class="px-3 py-3">
+                <a href={`/county/${c.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">{c.name}</a>
+              </td>
+              <td class="px-3 py-3 text-gray-600 dark:text-gray-400">
+                <a href={`/state/${c.state_name?.toLowerCase().replace(/\s+/g, '-')}`} class="hover:underline">{c.state_code}</a>
+              </td>
+              <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(c.total_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(c.major_disasters)}</td>
+              <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{c.top_incident_type || '—'}</td>
+              <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{c.latest_disaster_year || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    {counties.length > 500 && (
+      <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Showing top 500 of {fmtNumber(counties.length)} counties.</p>
+    )}
+
+    <p class="mt-6 text-xs text-gray-400 dark:text-gray-500">
+      Source: FEMA OpenFEMA Disaster Declarations Summaries v2.
+    </p>
+  </section>
+</Base>

@@ -1,0 +1,60 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getStormEventTypes, fmtDamage, fmtNumber } from '../../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const types = await getStormEventTypes(db);
+---
+
+<Base
+  title="Storm Hazard Types — Severe Weather Events"
+  description={`Browse ${types.length} types of severe weather events tracked by NOAA. See event counts, fatalities, injuries, and property damage for each hazard type.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Hazards' },
+  ]}
+>
+  <section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Storm Hazard Types</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+      {types.length} types of severe weather events tracked by NOAA's Storm Events Database (2015-2025), ranked by total event count.
+    </p>
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Hazard Type</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Events</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Crop Damage</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">States</th>
+          </tr>
+        </thead>
+        <tbody>
+          {types.map((t, i) => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+              <td class="px-3 py-3">
+                <a href={`/hazard/${t.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">{t.event_type}</a>
+              </td>
+              <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(t.total_events)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(t.total_fatalities)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(t.total_injuries)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(t.total_property_damage)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(t.total_crop_damage)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{t.states_affected}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-6 text-xs text-gray-400 dark:text-gray-500">
+      Source: NOAA NCEI Storm Events Database (2015-2025).
+    </p>
+  </section>
+</Base>

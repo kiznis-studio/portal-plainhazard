@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getStates, fmtDamage, fmtNumber } from '../../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const states = await getStates(db);
+---
+
+<Base
+  title="Most Disaster-Prone States — FEMA Rankings"
+  description={`All ${states.length} U.S. states ranked by total FEMA disaster declarations. See which states face the most natural disasters.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Rankings', href: '/rankings/most-disasters' },
+    { name: 'Most Disasters' },
+  ]}
+>
+  <section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Most Disaster-Prone States</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+      All {states.length} U.S. states and territories ranked by total FEMA disaster declarations.
+    </p>
+    <div class="mt-2 flex gap-3 text-sm">
+      <span class="font-semibold text-brand-600 dark:text-brand-400">Most Disasters</span>
+      <a href="/rankings/most-damage" class="text-gray-500 hover:underline dark:text-gray-400">Most Damage</a>
+      <a href="/rankings/deadliest" class="text-gray-500 hover:underline dark:text-gray-400">Deadliest</a>
+    </div>
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Total Disasters</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Major</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Emergencies</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fire Mgmt</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Top Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {states.map((s, i) => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+              <td class="px-3 py-3">
+                <a href={`/state/${s.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">{s.name}</a>
+                <span class="ml-1 text-xs text-gray-400">({s.code})</span>
+              </td>
+              <td class="px-3 py-3 text-right font-mono font-bold text-gray-900 dark:text-gray-100">{fmtNumber(s.total_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.major_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.emergencies)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.fire_mgmt)}</td>
+              <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{s.top_incident_type || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-6 text-xs text-gray-400 dark:text-gray-500">
+      Source: FEMA OpenFEMA Disaster Declarations Summaries v2.
+    </p>
+  </section>
+</Base>

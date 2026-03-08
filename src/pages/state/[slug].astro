@@ -1,0 +1,241 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getState, getDisastersByState, getStateDisasterTypes, getStateStormSummary, getCountiesByState, getStormEventsByState, fmtDamage, fmtNumber } from '../../lib/db';
+
+const { slug } = Astro.params;
+const db = (Astro.locals as any).runtime.env.DB;
+
+const state = await getState(db, slug!);
+if (!state) return Astro.redirect('/404');
+
+const [disasters, disasterTypes, stormSummary, counties, stormEvents] = await Promise.all([
+  getDisastersByState(db, state.code),
+  getStateDisasterTypes(db, state.code),
+  getStateStormSummary(db, state.code),
+  getCountiesByState(db, state.code),
+  getStormEventsByState(db, state.code),
+]);
+
+// Aggregate storm events by type for this state
+const stormByType = new Map<string, { events: number; fatalities: number; injuries: number; damage: number }>();
+for (const se of stormEvents) {
+  const existing = stormByType.get(se.event_type) || { events: 0, fatalities: 0, injuries: 0, damage: 0 };
+  existing.events += se.events;
+  existing.fatalities += se.fatalities;
+  existing.injuries += se.injuries;
+  existing.damage += se.property_damage;
+  stormByType.set(se.event_type, existing);
+}
+const stormTypeList = [...stormByType.entries()]
+  .map(([type, d]) => ({ type, ...d }))
+  .sort((a, b) => b.events - a.events);
+
+const totalDamage = state.total_property_damage + state.total_crop_damage;
+---
+
+<Base
+  title={`${state.name} — Disasters & Severe Weather`}
+  description={`${state.name} has had ${fmtNumber(state.total_disasters)} FEMA disaster declarations and ${fmtNumber(state.total_storm_events)} storm events. ${fmtDamage(totalDamage)} in total damage. Top hazard: ${state.top_incident_type}.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'States', href: '/states/' },
+    { name: state.name },
+  ]}
+>
+  <!-- Hero -->
+  <section class="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+    <div class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+      <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/" class="hover:underline">Home</a>
+        <span>/</span>
+        <a href="/states/" class="hover:underline">States</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-gray-100">{state.name}</span>
+      </div>
+      <h1 class="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100 md:text-4xl">{state.name}</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">
+        Disaster declarations, storm events, and severe weather data for {state.name} ({state.code}).
+        Top disaster type: <span class="font-medium">{state.top_incident_type}</span>.
+      </p>
+
+      <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Disasters</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(state.total_disasters)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Major Disasters</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(state.major_disasters)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Storm Events</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(state.total_storm_events)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Fatalities</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(state.total_fatalities)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Total Damage</p>
+          <p class="mt-1 text-xl font-bold text-amber-600 dark:text-amber-400">{fmtDamage(totalDamage)}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <!-- Disaster Types for this State -->
+    {disasterTypes.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Disaster Types in {state.name}</h2>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {disasterTypes.map(dt => (
+            <div class="flex items-center justify-between rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{dt.incident_type}</span>
+              <span class="text-lg font-bold text-brand-600 dark:text-brand-400">{fmtNumber(dt.count)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Storm Events by Type -->
+    {stormTypeList.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Storm Events by Type</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">NOAA storm event data for {state.name} (2015-2025).</p>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Event Type</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Events</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stormTypeList.slice(0, 20).map(st => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{st.type}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(st.events)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(st.fatalities)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(st.injuries)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(st.damage)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <!-- Storm Summary by Year -->
+    {stormSummary.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Storm Events by Year</h2>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Year</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Events</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stormSummary.map(ss => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{ss.year}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(ss.total_events)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(ss.total_fatalities)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(ss.total_injuries)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(ss.total_property_damage)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <!-- Recent Disaster Declarations -->
+    {disasters.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">FEMA Disaster Declarations</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{fmtNumber(disasters.length)} unique disaster declarations in {state.name}.</p>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">DR#</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Title</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Type</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Incident</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {disasters.slice(0, 50).map(d => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3 font-mono text-xs text-gray-500 dark:text-gray-400">{d.disaster_number}</td>
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{d.title}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{d.declaration_type}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{d.incident_type}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{d.declaration_date?.split('T')[0] || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {disasters.length > 50 && (
+          <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">Showing 50 of {fmtNumber(disasters.length)} declarations.</p>
+        )}
+      </section>
+    )}
+
+    <!-- Counties -->
+    {counties.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Counties in {state.name}</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{fmtNumber(counties.length)} counties with FEMA disaster data.</p>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">County</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Disasters</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Major</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Top Hazard</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Latest</th>
+              </tr>
+            </thead>
+            <tbody>
+              {counties.slice(0, 50).map(c => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3">
+                    <a href={`/county/${c.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">{c.name}</a>
+                  </td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(c.total_disasters)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(c.major_disasters)}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{c.top_incident_type || '—'}</td>
+                  <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{c.latest_disaster_year || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {counties.length > 50 && (
+          <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">Showing 50 of {fmtNumber(counties.length)} counties.</p>
+        )}
+      </section>
+    )}
+
+    <p class="text-xs text-gray-400 dark:text-gray-500">
+      Source: FEMA OpenFEMA Disaster Declarations, NOAA Storm Events Database (2015-2025). For informational purposes only.
+    </p>
+  </div>
+</Base>

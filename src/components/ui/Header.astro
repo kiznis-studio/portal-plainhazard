@@ -1,0 +1,89 @@
+---
+const pathname = Astro.url.pathname;
+function isActive(path: string) {
+  return pathname === path || pathname.startsWith(path + '/');
+}
+const navLinks = [
+  { href: '/states/', label: 'States', match: ['/states', '/state'] },
+  { href: '/counties/', label: 'Counties', match: ['/counties', '/county'] },
+  { href: '/hazards/', label: 'Hazards', match: ['/hazards', '/hazard'] },
+  { href: '/disaster-types/', label: 'Disasters', match: ['/disaster-types', '/disaster-type'] },
+  { href: '/rankings/most-disasters', label: 'Rankings', match: ['/rankings'] },
+];
+---
+
+<header class="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold text-brand-600 dark:text-brand-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      PlainHazard
+    </a>
+
+    <nav class="hidden items-center gap-1 md:flex">
+      {navLinks.map(link => (
+        <a
+          href={link.href}
+          class:list={[
+            'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+            link.match.some(m => isActive(m))
+              ? 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <button
+        id="theme-toggle"
+        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+        aria-label="Toggle dark mode"
+      >
+        <svg class="h-5 w-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+        <svg class="hidden h-5 w-5 dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      </button>
+
+      <button id="mobile-menu-btn" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 md:hidden" aria-label="Menu">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-menu" class="hidden border-t border-gray-200 bg-white px-4 py-2 dark:border-gray-800 dark:bg-gray-950 md:hidden">
+    {navLinks.map(link => (
+      <a
+        href={link.href}
+        class:list={[
+          'block rounded-lg px-3 py-2 text-sm font-medium',
+          link.match.some(m => isActive(m))
+            ? 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300'
+            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+        ]}
+      >
+        {link.label}
+      </a>
+    ))}
+  </nav>
+</header>
+
+<script is:inline>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  });
+  document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-menu')?.classList.toggle('hidden');
+  });
+</script>

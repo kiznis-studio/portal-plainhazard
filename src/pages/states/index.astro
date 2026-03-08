@@ -1,0 +1,61 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getStates, fmtDamage, fmtNumber } from '../../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const states = await getStates(db);
+---
+
+<Base
+  title="All States — Natural Disaster & Storm Data"
+  description={`Browse disaster and severe weather data for ${states.length} U.S. states and territories. FEMA disaster declarations and NOAA storm events.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'States' },
+  ]}
+>
+  <section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">All States & Territories</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+      FEMA disaster declarations and NOAA storm event data for {states.length} U.S. states and territories, ranked by total disaster count.
+    </p>
+
+    <div class="mt-6 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Disasters</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Major</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Storm Events</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Top Hazard</th>
+          </tr>
+        </thead>
+        <tbody>
+          {states.map((s, i) => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+              <td class="px-3 py-3">
+                <a href={`/state/${s.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">{s.name}</a>
+                <span class="ml-1 text-xs text-gray-400">({s.code})</span>
+              </td>
+              <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(s.total_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.major_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.total_storm_events)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.total_fatalities)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(s.total_property_damage)}</td>
+              <td class="px-3 py-3 text-xs text-gray-500 dark:text-gray-400">{s.top_incident_type || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="mt-6 text-xs text-gray-400 dark:text-gray-500">
+      Source: FEMA OpenFEMA Disaster Declarations Summaries v2, NOAA Storm Events Database (2015-2025).
+    </p>
+  </section>
+</Base>

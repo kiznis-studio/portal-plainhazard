@@ -1,0 +1,52 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getDisasterTypes, fmtNumber } from '../../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const types = await getDisasterTypes(db);
+---
+
+<Base
+  title="FEMA Disaster Types — Declarations by Category"
+  description={`Browse ${types.length} FEMA disaster declaration types including fires, severe storms, floods, hurricanes, and more. See counts and affected states.`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Disaster Types' },
+  ]}
+>
+  <section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">FEMA Disaster Types</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">
+      {types.length} types of disasters declared by FEMA, ranked by total declaration count.
+    </p>
+
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {types.map((dt, i) => (
+        <a href={`/disaster-type/${dt.slug}`} class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <div class="flex items-center gap-3">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">#{i + 1}</span>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{dt.incident_type}</h2>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">{fmtNumber(dt.total_count)}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">declarations</p>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{dt.state_count}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">states</p>
+            </div>
+            <div>
+              <p class="text-lg font-bold text-gray-600 dark:text-gray-400">{dt.earliest_year}–{dt.latest_year}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">years</p>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <p class="mt-8 text-xs text-gray-400 dark:text-gray-500">
+      Source: FEMA OpenFEMA Disaster Declarations Summaries v2.
+    </p>
+  </section>
+</Base>

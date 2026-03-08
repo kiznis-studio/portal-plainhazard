@@ -1,0 +1,157 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getStormEventType, getStormEventsByType, fmtDamage, fmtNumber } from '../../lib/db';
+
+const { slug } = Astro.params;
+const db = (Astro.locals as any).runtime.env.DB;
+
+const hazard = await getStormEventType(db, slug!);
+if (!hazard) return Astro.redirect('/404');
+
+const events = await getStormEventsByType(db, hazard.event_type);
+
+// Aggregate by state
+const stateMap = new Map<string, { events: number; fatalities: number; injuries: number; damage: number }>();
+for (const e of events) {
+  const existing = stateMap.get(e.state) || { events: 0, fatalities: 0, injuries: 0, damage: 0 };
+  existing.events += e.events;
+  existing.fatalities += e.fatalities;
+  existing.injuries += e.injuries;
+  existing.damage += e.property_damage;
+  stateMap.set(e.state, existing);
+}
+const stateList = [...stateMap.entries()]
+  .map(([state, d]) => ({ state, ...d }))
+  .sort((a, b) => b.events - a.events);
+
+// Aggregate by year
+const yearMap = new Map<number, { events: number; fatalities: number; injuries: number; damage: number }>();
+for (const e of events) {
+  const existing = yearMap.get(e.year) || { events: 0, fatalities: 0, injuries: 0, damage: 0 };
+  existing.events += e.events;
+  existing.fatalities += e.fatalities;
+  existing.injuries += e.injuries;
+  existing.damage += e.property_damage;
+  yearMap.set(e.year, existing);
+}
+const yearList = [...yearMap.entries()]
+  .map(([year, d]) => ({ year, ...d }))
+  .sort((a, b) => b.year - a.year);
+
+const totalDamage = hazard.total_property_damage + hazard.total_crop_damage;
+---
+
+<Base
+  title={`${hazard.event_type} — Storm Hazard Data`}
+  description={`${hazard.event_type}: ${fmtNumber(hazard.total_events)} events across ${hazard.states_affected} states. ${fmtNumber(hazard.total_fatalities)} fatalities, ${fmtDamage(totalDamage)} in total damage. NOAA data (2015-2025).`}
+  breadcrumbs={[
+    { name: 'Home', href: '/' },
+    { name: 'Hazards', href: '/hazards/' },
+    { name: hazard.event_type },
+  ]}
+>
+  <section class="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+    <div class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+      <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/" class="hover:underline">Home</a>
+        <span>/</span>
+        <a href="/hazards/" class="hover:underline">Hazards</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-gray-100">{hazard.event_type}</span>
+      </div>
+      <h1 class="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100 md:text-4xl">{hazard.event_type}</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">
+        National statistics for {hazard.event_type} events from the NOAA Storm Events Database (2015-2025).
+      </p>
+
+      <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Total Events</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(hazard.total_events)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Fatalities</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(hazard.total_fatalities)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Injuries</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(hazard.total_injuries)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Property Damage</p>
+          <p class="mt-1 text-xl font-bold text-amber-600 dark:text-amber-400">{fmtDamage(hazard.total_property_damage)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">States Affected</p>
+          <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{hazard.states_affected}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <!-- By State -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{hazard.event_type} by State</h2>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+              <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Events</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stateList.map((s, i) => (
+              <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+                <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{s.state}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(s.events)}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.fatalities)}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.injuries)}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(s.damage)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- By Year -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{hazard.event_type} by Year</h2>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Year</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Events</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+              <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {yearList.map(y => (
+              <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{y.year}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(y.events)}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(y.fatalities)}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(y.injuries)}</td>
+                <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(y.damage)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="text-xs text-gray-400 dark:text-gray-500">
+      Source: NOAA NCEI Storm Events Database (2015-2025). For informational purposes only.
+    </p>
+  </div>
+</Base>

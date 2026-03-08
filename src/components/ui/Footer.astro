@@ -1,0 +1,77 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+  <div class="mx-auto max-w-7xl px-4 py-16 md:py-20">
+    <div class="grid grid-cols-2 gap-8 md:grid-cols-12">
+      <div class="col-span-2 md:col-span-4">
+        <a href="/" class="text-lg font-bold text-brand-600 dark:text-brand-400">PlainHazard</a>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          Natural disaster and severe weather data made plain. Explore FEMA disaster declarations and NOAA storm events across all U.S. states and counties.
+        </p>
+      </div>
+
+      <div class="md:col-span-2">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Explore</h3>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href="/states/" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">States</a></li>
+          <li><a href="/counties/" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Counties</a></li>
+          <li><a href="/hazards/" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Hazard Types</a></li>
+          <li><a href="/disaster-types/" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Disaster Types</a></li>
+        </ul>
+      </div>
+
+      <div class="md:col-span-2">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Rankings</h3>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href="/rankings/most-disasters" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Most Disasters</a></li>
+          <li><a href="/rankings/most-damage" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Most Damage</a></li>
+          <li><a href="/rankings/deadliest" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Deadliest States</a></li>
+        </ul>
+      </div>
+
+      <div class="md:col-span-2">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Legal</h3>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href="/privacy" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Privacy Policy</a></li>
+          <li><a href="/about" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">About</a></li>
+        </ul>
+      </div>
+
+      <div class="md:col-span-2">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Related</h3>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href="https://plainrecalls.com" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">PlainRecalls</a></li>
+          <li><a href="https://plainenviro.com" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">PlainEnviro</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Our Network -->
+    <div class="mt-10 border-t border-gray-200 pt-8 dark:border-gray-800">
+      <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-gray-100">Our Network</h3>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
+        {[
+          { href: 'https://plainrecalls.com', label: 'PlainRecalls', desc: 'Product Recalls' },
+          { href: 'https://plainenviro.com', label: 'PlainEnviro', desc: 'Environmental Data' },
+          { href: 'https://plainschools.com', label: 'PlainSchools', desc: 'School Data' },
+          { href: 'https://plainrent.com', label: 'PlainRent', desc: 'Fair Market Rents' },
+          { href: 'https://plaincrime.com', label: 'PlainCrime', desc: 'Crime Data' },
+          { href: 'https://plaincars.com', label: 'PlainCars', desc: 'Vehicle Safety' },
+        ].map(item => (
+          <a href={item.href} target="_blank" rel="noopener" class="text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200" title={item.desc}>
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-8 border-t border-gray-200 pt-8 dark:border-gray-800">
+      <p class="text-center text-xs text-gray-400 dark:text-gray-500">
+        &copy; {year} PlainHazard. Data from <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="hover:underline">FEMA OpenFEMA</a> and <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="hover:underline">NOAA Storm Events</a>.
+        Not affiliated with the U.S. government. For informational purposes only.
+      </p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,211 @@
+---
+import Base from '../layouts/Base.astro';
+import { getStats, getTopStatesByDisasters, getTopStatesByDamage, getDisasterTypes, getStormEventTypes, getDisastersByYear, fmtDamage, fmtNumber } from '../lib/db';
+
+const db = (Astro.locals as any).runtime.env.DB;
+const stats = await getStats(db);
+const topStates = await getTopStatesByDisasters(db, 10);
+const topDamage = await getTopStatesByDamage(db, 5);
+const disasterTypes = await getDisasterTypes(db);
+const stormTypes = await getStormEventTypes(db);
+const yearlyData = await getDisastersByYear(db);
+---
+
+<Base
+  title="PlainHazard — Natural Disaster & Severe Weather Data"
+  description={`Explore ${fmtNumber(stats.total_disasters)} FEMA disaster declarations and ${fmtNumber(stats.total_storm_events)} NOAA storm events across ${stats.total_states} states. Property damage totaling ${fmtDamage(stats.total_property_damage)}.`}
+>
+  <!-- Hero -->
+  <section class="bg-gradient-to-br from-brand-600 to-brand-800 text-white">
+    <div class="mx-auto max-w-7xl px-4 py-16 md:py-24">
+      <h1 class="text-4xl font-bold tracking-tight md:text-5xl">Natural Disaster & Severe Weather Data</h1>
+      <p class="mt-4 max-w-2xl text-lg text-brand-100">
+        Explore {fmtNumber(stats.total_disasters)} FEMA disaster declarations and {fmtNumber(stats.total_storm_events)} NOAA storm events across {stats.total_states} U.S. states and territories. {fmtDamage(stats.total_property_damage)} in total property damage tracked.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/states/" class="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm hover:bg-brand-50">Browse States</a>
+        <a href="/hazards/" class="rounded-lg border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">Storm Hazards</a>
+        <a href="/rankings/most-disasters" class="rounded-lg border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">Rankings</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Cards -->
+  <section class="mx-auto max-w-7xl px-4 -mt-8">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div class="rounded-xl bg-white p-5 shadow-md ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">FEMA Disasters</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(stats.total_disasters)}</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-md ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Storm Events</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(stats.total_storm_events)}</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-md ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Total Fatalities</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(stats.total_fatalities)}</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-md ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Property Damage</p>
+        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{fmtDamage(stats.total_property_damage)}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top States by Disaster Declarations -->
+  <section class="mx-auto max-w-7xl px-4 py-12">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Most Disaster-Prone States</h2>
+      <a href="/states/" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">View all</a>
+    </div>
+    <div class="mt-4 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">#</th>
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">State</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Disasters</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Storm Events</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topStates.map((s, i) => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{i + 1}</td>
+              <td class="px-3 py-3">
+                <a href={`/state/${s.slug}`} class="font-medium text-brand-600 hover:underline dark:text-brand-400">
+                  {s.name}
+                </a>
+                <span class="ml-1 text-xs text-gray-400">({s.code})</span>
+              </td>
+              <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(s.total_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.total_storm_events)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(s.total_fatalities)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(s.total_property_damage)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Top Storm Event Types -->
+  <section class="mx-auto max-w-7xl px-4 pb-12">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Most Common Storm Hazards</h2>
+      <a href="/hazards/" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">View all {stats.total_storm_types}</a>
+    </div>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {stormTypes.slice(0, 5).map((st, i) => (
+        <a href={`/hazard/${st.slug}`} class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <div class="flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">#{i + 1}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{st.event_type}</span>
+          </div>
+          <p class="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(st.total_events)}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">events across {st.states_affected} states</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Disaster Types -->
+  <section class="mx-auto max-w-7xl px-4 pb-12">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">FEMA Disaster Types</h2>
+      <a href="/disaster-types/" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">View all</a>
+    </div>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {disasterTypes.slice(0, 8).map(dt => (
+        <a href={`/disaster-type/${dt.slug}`} class="flex items-center justify-between rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100">{dt.incident_type}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{dt.state_count} states affected</p>
+          </div>
+          <span class="text-lg font-bold text-brand-600 dark:text-brand-400">{fmtNumber(dt.total_count)}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Costliest States -->
+  <section class="mx-auto max-w-7xl px-4 pb-12">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Costliest States by Property Damage</h2>
+      <a href="/rankings/most-damage" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">Full ranking</a>
+    </div>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {topDamage.map((s, i) => (
+        <a href={`/state/${s.slug}`} class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <div class="flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-xs font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">#{i + 1}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{s.name}</span>
+          </div>
+          <p class="mt-3 text-2xl font-bold text-amber-600 dark:text-amber-400">{fmtDamage(s.total_property_damage)}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">property damage</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Disasters by Year -->
+  <section class="mx-auto max-w-7xl px-4 pb-12">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Disaster Declarations by Year</h2>
+    <div class="mt-4 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Year</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Total</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Major Disasters</th>
+            <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Emergencies</th>
+          </tr>
+        </thead>
+        <tbody>
+          {yearlyData.map(y => (
+            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+              <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{y.year}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(y.total_count)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(y.major_disasters)}</td>
+              <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(y.emergencies)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Quick Links -->
+  <section class="border-t border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+    <div class="mx-auto max-w-7xl px-4 py-12">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Explore More</h2>
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <a href="/rankings/most-disasters" class="rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Most Disaster-Prone States</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">States with the highest number of FEMA disaster declarations.</p>
+        </a>
+        <a href="/rankings/most-damage" class="rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Most Costly States</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">States with the highest property and crop damage from severe weather.</p>
+        </a>
+        <a href="/rankings/deadliest" class="rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Deadliest States</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">States with the most storm-related fatalities.</p>
+        </a>
+        <a href="/counties/" class="rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-shadow hover:shadow-md dark:bg-gray-900 dark:ring-gray-800">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Browse by County</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">FEMA disaster declarations at the county level.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data Sources -->
+  <section class="mx-auto max-w-7xl px-4 py-8">
+    <p class="text-xs text-gray-400 dark:text-gray-500">
+      Data sources: <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="hover:underline">FEMA OpenFEMA Disaster Declarations Summaries v2</a> and <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="hover:underline">NOAA NCEI Storm Events Database (2015-2025)</a>. For informational purposes only.
+    </p>
+  </section>
+</Base>

@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="About PlainHazard"
+  description="PlainHazard provides natural disaster and severe weather data from FEMA and NOAA. Learn about our data sources and methodology."
+>
+  <section class="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">About PlainHazard</h1>
+
+    <div class="mt-6 space-y-6 text-gray-600 dark:text-gray-400">
+      <p>
+        PlainHazard makes natural disaster and severe weather data accessible and easy to understand. We aggregate data from official U.S. government sources to provide a comprehensive view of hazards across all states and counties.
+      </p>
+
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Data Sources</h2>
+
+      <div class="rounded-lg bg-white p-6 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-100">FEMA OpenFEMA API</h3>
+        <p class="mt-2 text-sm">
+          <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="text-brand-600 hover:underline dark:text-brand-400">Disaster Declarations Summaries v2</a> — Official record of all federally declared disasters including major disaster declarations, emergency declarations, and fire management assistance declarations. Data includes disaster type, declaration dates, and affected areas at the county level.
+        </p>
+      </div>
+
+      <div class="rounded-lg bg-white p-6 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-100">NOAA Storm Events Database</h3>
+        <p class="mt-2 text-sm">
+          <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="text-brand-600 hover:underline dark:text-brand-400">NCEI Storm Events</a> — The National Centers for Environmental Information maintains records of severe weather events including thunderstorms, tornadoes, floods, hail, hurricanes, and more. Our data covers 2015-2025 and includes event counts, fatalities, injuries, and property/crop damage estimates.
+        </p>
+      </div>
+
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Methodology</h2>
+      <ul class="list-inside list-disc space-y-2 text-sm">
+        <li>FEMA disaster data is aggregated from individual declaration records to state and county levels.</li>
+        <li>NOAA storm event data is aggregated by state, year, and event type.</li>
+        <li>Property and crop damage figures are reported in nominal dollars as provided by NOAA.</li>
+        <li>Fatality and injury counts include both direct and indirect causes as classified by NOAA.</li>
+        <li>Data is updated periodically as new records become available.</li>
+      </ul>
+
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Disclaimer</h2>
+      <p class="text-sm">
+        PlainHazard is not affiliated with FEMA, NOAA, or the U.S. government. This site is provided for informational purposes only. While we strive for accuracy, official data should be verified at the source. This data should not be used as the sole basis for emergency planning, insurance, or real estate decisions.
+      </p>
+
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Contact</h2>
+      <p class="text-sm">
+        For questions about the data or this website, please reach out via the contact information on our parent site.
+      </p>
+    </div>
+  </section>
+</Base>
