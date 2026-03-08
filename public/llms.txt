@@ -1,0 +1,22 @@
+# PlainHazard
+
+> Natural disaster and severe weather data portal — FEMA disaster declarations and NOAA storm events.
+
+## Data Source
+- FEMA OpenFEMA API — 10,000 disaster declarations
+- NOAA Storm Events Database — 707,100 events (2015-2025)
+- 56 states/territories, 2,703 counties, 55 hazard types, 16 disaster types
+
+## Pages
+- State pages: /state/{slug} — disasters, storm events by type and year, county breakdown
+- County pages: /county/{slug} — FEMA disaster history
+- Hazard pages: /hazard/{slug} — storm event type analysis, state breakdown
+- Disaster type pages: /disaster-type/{slug} — FEMA disaster category stats
+- Rankings: /rankings/most-disasters, /rankings/most-damage, /rankings/deadliest
+
+## API
+- Search: /api/search?q={query} — search states, counties, hazard types
+- Health: /health — service status
+
+## Attribution
+Data from FEMA OpenFEMA and NOAA NCEI Storm Events Database.
