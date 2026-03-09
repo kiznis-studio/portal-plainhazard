@@ -15,9 +15,9 @@ COPY --from=builder --chown=app:app /app/node_modules ./node_modules
 COPY --from=builder --chown=app:app /app/package.json ./
 USER app
 ENV HOST=0.0.0.0
-ENV PORT=8080
-EXPOSE 8080
+ENV PORT=4321
+EXPOSE 4321
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "require('http').get('http://localhost:4321/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 ENTRYPOINT ["tini", "--"]
 CMD ["node", "dist/server/entry.mjs"]
