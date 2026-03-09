@@ -1,0 +1,21 @@
+services:
+  portal-plainhazard:
+    image: ghcr.io/kiznis-studio/portal-plainhazard:latest
+    container_name: portal-plainhazard
+    restart: unless-stopped
+    volumes:
+      - /opt/portals/data/sqlite/plainhazard.db:/data/portal.db:ro
+    environment:
+      - PORT=4321
+      - HOST=0.0.0.0
+      - DB_PATH=/data/portal.db
+      - CACHE_ENTRIES=500
+    networks:
+      - portals
+    mem_limit: 256m
+    cpus: 0.5
+
+networks:
+  portals:
+    external: true
+    name: portals-net
