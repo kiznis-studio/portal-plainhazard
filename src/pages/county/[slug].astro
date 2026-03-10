@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCounty, getDisastersByCounty, fmtNumber } from '../../lib/db';
+import { getCounty, getDisastersByCounty, getNfipByCounty, fmtNumber, fmtDamage } from '../../lib/db';
 
 const { slug } = Astro.params;
 const db = (Astro.locals as any).runtime.env.DB;
@@ -8,7 +8,10 @@ const db = (Astro.locals as any).runtime.env.DB;
 const county = await getCounty(db, slug!);
 if (!county) return Astro.redirect('/404');
 
-const disasters = await getDisastersByCounty(db, county.fips);
+const [disasters, nfip] = await Promise.all([
+  getDisastersByCounty(db, county.fips),
+  getNfipByCounty(db, county.fips),
+]);
 
 // Group disasters by type
 const typeMap = new Map<string, number>();
@@ -113,6 +116,33 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
             </tbody>
           </table>
         </div>
+      </section>
+    )}
+
+    <!-- NFIP Flood Insurance Claims -->
+    {nfip && nfip.claims > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">NFIP Flood Insurance Claims</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          National Flood Insurance Program claims history for {county.name} County from FEMA NFIP data.
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Total Claims</p>
+            <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(nfip.claims)}</p>
+          </div>
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Total Paid</p>
+            <p class="mt-1 text-xl font-bold text-brand-600 dark:text-brand-400">{fmtDamage(nfip.total_paid)}</p>
+          </div>
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Avg Per Claim</p>
+            <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtDamage(nfip.avg_paid)}</p>
+          </div>
+        </div>
+        <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+          Source: FEMA National Flood Insurance Program (NFIP) OpenFEMA Claims Data.
+        </p>
       </section>
     )}
 

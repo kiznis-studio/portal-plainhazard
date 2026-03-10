@@ -413,6 +413,60 @@ export function getAllDisasterTypeSlugs(db: D1Database): Promise<{ slug: string 
   });
 }
 
+// --- NFIP Flood Insurance ---
+
+export interface NfipCounty {
+  county_code: string;
+  state: string;
+  claims: number;
+  total_paid: number;
+  avg_paid: number;
+  by_year: string;
+}
+
+export async function getNfipByCounty(db: D1Database, fips: string): Promise<NfipCounty | null> {
+  return db.prepare('SELECT * FROM nfip_county WHERE county_code = ?').bind(fips).first<NfipCounty>();
+}
+
+export function getTopNfipCounties(db: D1Database, limit = 50): Promise<(NfipCounty & { county_name: string; state_name: string; county_slug: string })[]> {
+  return cached(`top-nfip-counties:${limit}`, async () => {
+    const { results } = await db.prepare(`
+      SELECT nc.*, c.name as county_name, c.state_name, c.slug as county_slug
+      FROM nfip_county nc
+      LEFT JOIN counties c ON c.fips = nc.county_code
+      WHERE nc.claims > 0
+      ORDER BY nc.claims DESC
+      LIMIT ?
+    `).bind(limit).all();
+    return results as any[];
+  });
+}
+
+export function getNfipByState(db: D1Database, stateCode: string): Promise<{ total_claims: number; total_paid: number; avg_paid: number; counties_with_claims: number }> {
+  return cached(`nfip-state:${stateCode}`, async () => {
+    const row = await db.prepare(`
+      SELECT
+        SUM(nc.claims) as total_claims,
+        SUM(nc.total_paid) as total_paid,
+        ROUND(CASE WHEN SUM(nc.claims) > 0 THEN SUM(nc.total_paid) / SUM(nc.claims) ELSE 0 END) as avg_paid,
+        COUNT(*) as counties_with_claims
+      FROM nfip_county nc
+      JOIN counties c ON c.fips = nc.county_code
+      WHERE c.state_code = ? AND nc.claims > 0
+    `).bind(stateCode).first();
+    return row as any ?? { total_claims: 0, total_paid: 0, avg_paid: 0, counties_with_claims: 0 };
+  });
+}
+
+export function getNationalNfipStats(db: D1Database): Promise<Record<string, string>> {
+  return cached('nfip-national', async () => {
+    const { results } = await db.prepare('SELECT * FROM nfip_stats').all<{ key: string; value: string }>();
+    const map: Record<string, string> = {};
+    for (const r of results) map[r.key] = r.value;
+    return map;
+  });
+}
+
 // Pre-warm all shared query caches at startup.
 export async function warmQueryCache(db: D1Database): Promise<number> {
   const start = Date.now();
@@ -433,6 +487,8 @@ export async function warmQueryCache(db: D1Database): Promise<number> {
     getAllCountySlugs(db),
     getAllStormTypeSlugs(db),
     getAllDisasterTypeSlugs(db),
+    getNationalNfipStats(db),
+    getTopNfipCounties(db),
   ]);
   console.log(`[cache] Warmed ${queryCache.size} queries in ${Date.now() - start}ms`);
   return queryCache.size;

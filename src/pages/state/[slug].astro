@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getState, getDisastersByState, getStateDisasterTypes, getStateStormSummary, getCountiesByState, getStormEventsByState, fmtDamage, fmtNumber } from '../../lib/db';
+import { getState, getDisastersByState, getStateDisasterTypes, getStateStormSummary, getCountiesByState, getStormEventsByState, getNfipByState, fmtDamage, fmtNumber } from '../../lib/db';
 
 const { slug } = Astro.params;
 const db = (Astro.locals as any).runtime.env.DB;
@@ -8,12 +8,13 @@ const db = (Astro.locals as any).runtime.env.DB;
 const state = await getState(db, slug!);
 if (!state) return Astro.redirect('/404');
 
-const [disasters, disasterTypes, stormSummary, counties, stormEvents] = await Promise.all([
+const [disasters, disasterTypes, stormSummary, counties, stormEvents, nfipState] = await Promise.all([
   getDisastersByState(db, state.code),
   getStateDisasterTypes(db, state.code),
   getStateStormSummary(db, state.code),
   getCountiesByState(db, state.code),
   getStormEventsByState(db, state.code),
+  getNfipByState(db, state.code),
 ]);
 
 // Aggregate storm events by type for this state
@@ -194,6 +195,35 @@ const totalDamage = state.total_property_damage + state.total_crop_damage;
         {disasters.length > 50 && (
           <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">Showing 50 of {fmtNumber(disasters.length)} declarations.</p>
         )}
+      </section>
+    )}
+
+    <!-- NFIP Flood Insurance -->
+    {nfipState && nfipState.total_claims > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">NFIP Flood Insurance Claims</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          National Flood Insurance Program claims across {state.name} from FEMA NFIP data.
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Total Claims</p>
+            <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(nfipState.total_claims)}</p>
+          </div>
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Total Paid</p>
+            <p class="mt-1 text-xl font-bold text-brand-600 dark:text-brand-400">{fmtDamage(nfipState.total_paid)}</p>
+          </div>
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Avg Per Claim</p>
+            <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtDamage(nfipState.avg_paid)}</p>
+          </div>
+          <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Counties With Claims</p>
+            <p class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">{fmtNumber(nfipState.counties_with_claims)}</p>
+          </div>
+        </div>
+        <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">Source: FEMA National Flood Insurance Program (NFIP) OpenFEMA Claims Data.</p>
       </section>
     )}
 
