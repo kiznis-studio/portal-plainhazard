@@ -215,4 +215,25 @@ const yearlyData = await getDisastersByYear(db);
     "url": "https://plainhazard.com",
     "description": "Natural disaster and weather data from FEMA and NOAA for every US county."
   })} />
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "U.S. Natural Disaster and Hazard Data by County",
+  "description": "FEMA disaster declarations and NOAA storm events for 2,703 counties covering 56 states, 55 hazard types.",
+  "url": "https://plainhazard.com",
+  "keywords": ["natural disaster data", "FEMA disasters", "NOAA storm events", "hazard data", "US disaster history"],
+  "creator": {
+    "@type": "Organization",
+    "name": "PlainHazard"
+  },
+  "spatialCoverage": "United States",
+  "temporalCoverage": "1953/2025",
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "isAccessibleForFree": true,
+  "distribution": {
+    "@type": "DataDownload",
+    "encodingFormat": "text/html",
+    "contentUrl": "https://plainhazard.com"
+  }
+})} />
 </Base>
