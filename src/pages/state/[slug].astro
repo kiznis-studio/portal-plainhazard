@@ -35,7 +35,7 @@ const totalDamage = state.total_property_damage + state.total_crop_damage;
 ---
 
 <Base
-  title={`${state.name} — Disasters & Severe Weather`}
+  title={`${state.name} Disasters: ${fmtNumber(state.total_disasters)} Declarations, ${fmtDamage(totalDamage)} Damage (Updated 2026)`}
   description={`${state.name} has had ${fmtNumber(state.total_disasters)} FEMA disaster declarations and ${fmtNumber(state.total_storm_events)} storm events. ${fmtDamage(totalDamage)} in total damage. Top hazard: ${state.top_incident_type}.`}
   breadcrumbs={[
     { name: 'Home', href: '/' },

@@ -26,7 +26,7 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
 ---
 
 <Base
-  title={`${county.name}, ${county.state_code} — Disaster History`}
+  title={`${county.name}, ${county.state_code} — ${fmtNumber(county.total_disasters)} Disasters${county.top_incident_type ? `, Top: ${county.top_incident_type}` : ''} (${county.first_disaster_year || '—'}–${county.latest_disaster_year || 'Present'})`}
   description={`${county.name} County in ${county.state_name} has had ${fmtNumber(county.total_disasters)} FEMA disaster declarations. Top disaster type: ${county.top_incident_type || 'N/A'}. Data from ${county.first_disaster_year || '—'} to ${county.latest_disaster_year || '—'}.`}
   breadcrumbs={[
     { name: 'Home', href: '/' },

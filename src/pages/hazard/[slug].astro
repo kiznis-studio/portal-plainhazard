@@ -42,7 +42,7 @@ const totalDamage = hazard.total_property_damage + hazard.total_crop_damage;
 ---
 
 <Base
-  title={`${hazard.event_type} — Storm Hazard Data`}
+  title={`${hazard.event_type}: ${fmtNumber(hazard.total_events)} Events, ${fmtNumber(hazard.total_fatalities)} Fatalities Across ${hazard.states_affected} States`}
   description={`${hazard.event_type}: ${fmtNumber(hazard.total_events)} events across ${hazard.states_affected} states. ${fmtNumber(hazard.total_fatalities)} fatalities, ${fmtDamage(totalDamage)} in total damage. NOAA data (2015-2025).`}
   breadcrumbs={[
     { name: 'Home', href: '/' },
