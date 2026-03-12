@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import tailwindcss from '@tailwindcss/vite';
+import sentry from '@sentry/astro';
 
 export default defineConfig({
   output: 'server',
@@ -9,4 +10,12 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  integrations: [
+    sentry({
+      dsn: 'https://7f85f5b92eaf070ef3cb7ae5d98c35c7@o4510827630231552.ingest.de.sentry.io/4511031099064400',
+      sourceMapsUploadOptions: {
+        enabled: false,
+      },
+    }),
+  ],
 });
