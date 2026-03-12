@@ -208,4 +208,11 @@ const yearlyData = await getDisastersByYear(db);
       Data sources: <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="hover:underline">FEMA OpenFEMA Disaster Declarations Summaries v2</a> and <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="hover:underline">NOAA NCEI Storm Events Database (2015-2025)</a>. For informational purposes only.
     </p>
   </section>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PlainHazard",
+    "url": "https://plainhazard.com",
+    "description": "Natural disaster and weather data from FEMA and NOAA for every US county."
+  })} />
 </Base>
