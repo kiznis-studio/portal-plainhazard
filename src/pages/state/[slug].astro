@@ -35,8 +35,8 @@ const totalDamage = state.total_property_damage + state.total_crop_damage;
 ---
 
 <Base
-  title={`${state.name} Disasters: ${fmtNumber(state.total_disasters)} Declarations, ${fmtDamage(totalDamage)} Damage (Updated 2026)`}
-  description={`${state.name} has had ${fmtNumber(state.total_disasters)} FEMA disaster declarations and ${fmtNumber(state.total_storm_events)} storm events. ${fmtDamage(totalDamage)} in total damage. Top hazard: ${state.top_incident_type}.`}
+  title={`${state.name} FEMA Disaster Declarations: ${fmtNumber(state.total_disasters)} Total | ${fmtDamage(totalDamage)} Damage`}
+  description={`${state.name} has ${fmtNumber(state.total_disasters)} FEMA disaster declarations and ${fmtNumber(state.total_storm_events)} NOAA storm events. ${fmtDamage(totalDamage)} in total damage. Top hazard: ${state.top_incident_type}. View all disasters, storm data & county breakdown.`}
   breadcrumbs={[
     { name: 'Home', href: '/' },
     { name: 'States', href: '/states/' },
