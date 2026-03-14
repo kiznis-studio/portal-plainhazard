@@ -4,12 +4,16 @@ services:
     container_name: portal-plainhazard
     restart: unless-stopped
     volumes:
-      - /opt/portals/data/sqlite/plainhazard.db:/data/portal.db:ro
+      - /opt/portals/data/sqlite/plainhazard.db:/data/portal.db
     environment:
       - PORT=4321
       - HOST=0.0.0.0
       - DB_PATH=/data/portal.db
       - CACHE_ENTRIES=500
+      - WORKERS=1
+      - WORKERS_MAX=4
+      - MGMT_PORT=4322
+      - MAX_BOT_CONCURRENT=25
     networks:
       - portals
     mem_limit: 256m
