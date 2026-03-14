@@ -9,7 +9,7 @@ services:
       - PORT=4321
       - HOST=0.0.0.0
       - DB_PATH=/data/portal.db
-      - CACHE_ENTRIES=500
+      - CACHE_ENTRIES=5000
       - WORKERS=1
       - WORKERS_MAX=4
       - MGMT_PORT=4322
