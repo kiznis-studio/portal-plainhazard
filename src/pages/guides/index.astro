@@ -1,0 +1,72 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export const prerender = false;
+
+const guides = [
+  {
+    slug: 'understanding-disaster-data',
+    title: 'Understanding FEMA Disaster Data',
+    description: 'What FEMA disaster declarations mean, the difference between major and emergency declarations, and how NOAA tracks storm events across the country.',
+  },
+  {
+    slug: 'natural-hazard-risk-by-region',
+    title: 'Natural Hazard Risk by Region',
+    description: 'Geographic patterns in federal disaster data — which regions face the most hurricanes, tornadoes, floods, wildfires, and earthquakes based on historical records.',
+  },
+  {
+    slug: 'preparing-for-natural-disasters',
+    title: 'How to Use Hazard Data for Preparedness',
+    description: "How to use PlainHazard data to assess your area's historical risk profile and what patterns in federal data reveal about recurring hazards.",
+  },
+];
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Guides' },
+];
+---
+
+<Base
+  title="Natural Disaster Guides — PlainHazard"
+  description="Educational guides to understanding FEMA disaster declarations, NOAA storm data, regional hazard patterns, and how to interpret federal natural disaster data."
+  breadcrumbs={breadcrumbs}
+>
+  <div class="mx-auto max-w-4xl px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="hover:underline text-rose-600 dark:text-rose-400">Home</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-700 dark:text-gray-200">Guides</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Natural Disaster Guides</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-400">Educational resources for understanding FEMA disaster declarations, NOAA storm events, and regional hazard patterns across the United States.</p>
+    <p class="mt-2 text-sm text-gray-500 dark:text-gray-500">All guides draw on federal data: 10,000+ FEMA disaster declarations since 1953 and 707,000+ NOAA storm events across 56 states and 2,703 counties.</p>
+
+    <div class="mt-8 grid gap-6 sm:grid-cols-1">
+      {guides.map(guide => (
+        <a
+          href={`/guides/${guide.slug}`}
+          class="block rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-colors hover:border-rose-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-rose-700"
+        >
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{guide.title}</h2>
+          <p class="mt-2 text-gray-600 dark:text-gray-400">{guide.description}</p>
+          <span class="mt-3 inline-block text-sm font-medium text-rose-600 dark:text-rose-400">Read guide &rarr;</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="mt-10 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-4">
+      <p class="text-sm text-rose-800 dark:text-rose-200">
+        <strong>Safety notice:</strong> This content is for informational purposes only. Always follow official guidance from local authorities and emergency services.
+      </p>
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-4 text-sm">
+      <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse by State</a>
+      <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse by County</a>
+      <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">Explore Hazard Types</a>
+    </div>
+  </div>
+</Base>

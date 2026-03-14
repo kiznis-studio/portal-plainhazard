@@ -1,0 +1,172 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export const prerender = false;
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Guides', href: '/guides/' },
+  { name: 'Understanding FEMA Disaster Data' },
+];
+
+const faqItems = [
+  {
+    q: 'What is a FEMA major disaster declaration?',
+    a: 'A major disaster declaration (DR) is issued by the President following a governor\'s request when a disaster overwhelms state and local resources. It unlocks the widest range of federal assistance programs — including Individual Assistance for households and Public Assistance for rebuilding infrastructure. Major disaster declarations are the most common type in the FEMA dataset, representing events like hurricanes, floods, tornadoes, and severe winter storms.',
+  },
+  {
+    q: 'How does an emergency declaration differ from a major disaster declaration?',
+    a: 'Emergency declarations (EM) are more limited in scope and can be issued in anticipation of an event or for smaller-scale situations. They primarily fund protective measures and emergency response costs rather than recovery. The federal cost ceiling for emergency declarations is typically $5 million, compared to major disaster declarations which can involve billions in aid. FEMA\'s dataset includes both types, and PlainHazard lets you filter by declaration type.',
+  },
+  {
+    q: 'What is a Fire Management Assistance Grant (FMAG)?',
+    a: 'Fire Management Assistance Grants (FM) help states, local, and tribal governments pay for suppressing uncontrolled fires that threaten communities. Unlike major disaster declarations, FMAGs are focused exclusively on wildfire firefighting costs and are declared much more frequently — often within hours of a fire threatening lives or property. Western states like California receive a disproportionate share of FMAGs given the regional fire environment.',
+  },
+  {
+    q: 'What does NOAA track in the Storm Events Database?',
+    a: 'NOAA\'s Storm Events Database, maintained by the National Centers for Environmental Information (NCEI), records severe weather events reported by the National Weather Service. It includes 55+ event types such as tornadoes, thunderstorm winds, flash floods, hail, winter storms, and tropical cyclones. Each record includes location, start/end times, fatalities, injuries, and property and crop damage estimates. PlainHazard covers 707,000+ events from 2015 through 2025.',
+  },
+  {
+    q: 'Why do some disasters appear in NOAA data but not FEMA data?',
+    a: 'NOAA records every qualifying severe weather event regardless of whether federal disaster aid was requested or granted. FEMA declarations require a governor\'s formal request and a presidential determination that state resources are overwhelmed. Many localized but destructive events — significant hail storms, flash floods affecting a single county — appear in NOAA data without triggering a FEMA declaration. Conversely, FEMA can declare disasters for non-weather events like droughts or chemical releases not in the NOAA storm events database.',
+  },
+  {
+    q: 'Has the frequency of FEMA disaster declarations increased over time?',
+    a: 'Yes — the number of annual FEMA major disaster declarations has grown substantially since 1953. In the 1960s, fewer than 20 declarations were issued per year nationally. By the 2010s and 2020s, that number routinely exceeds 50-70 per year. Researchers attribute this trend to a combination of factors: increased development in hazard-prone areas, better event detection and documentation, population growth in coastal and flood-prone zones, and changes in the political and administrative processes around disaster requests.',
+  },
+];
+---
+
+<Base
+  title="Understanding FEMA Disaster Data — PlainHazard Guide"
+  description="What FEMA disaster declarations mean, the difference between major declarations, emergency declarations, and fire grants, and how NOAA tracks storm events."
+  breadcrumbs={breadcrumbs}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="hover:underline text-rose-600 dark:text-rose-400">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/guides/" class="hover:underline text-rose-600 dark:text-rose-400">Guides</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-700 dark:text-gray-200">Understanding FEMA Disaster Data</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Understanding FEMA Disaster Data</h1>
+    <p class="mt-3 text-gray-600 dark:text-gray-400">A plain-language guide to what FEMA disaster declarations mean, how they differ from each other, and how NOAA storm records complement the picture.</p>
+
+    <!-- Key Takeaway -->
+    <div class="mt-6 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-5">
+      <p class="text-sm font-semibold text-amber-800 dark:text-amber-200 uppercase tracking-wide mb-1">Key Takeaway</p>
+      <p class="text-amber-900 dark:text-amber-100">FEMA disaster declarations represent the federal government's formal response to overwhelmed state resources — they are a lagging, policy-filtered view of disasters. NOAA storm records capture what actually happened on the ground, regardless of whether federal aid was requested. Together, both datasets give the most complete picture of US natural hazard history.</p>
+    </div>
+
+    <div class="mt-8 space-y-8 text-gray-600 dark:text-gray-400 leading-relaxed">
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">The Three Types of FEMA Declarations</h2>
+        <p>FEMA's OpenFEMA dataset distinguishes three declaration types, each serving a different purpose and unlocking different categories of federal aid.</p>
+
+        <div class="mt-4 space-y-4">
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Major Disaster Declaration (DR)</h3>
+            <p class="mt-1 text-sm">The most comprehensive federal disaster response tool, authorized under the Stafford Act. Triggered by presidential approval of a governor's request after an event causes damage exceeding state and local capacity. Unlocks Individual Assistance (housing, medical, crisis counseling), Public Assistance (infrastructure repair), and Hazard Mitigation grants. Examples include Hurricane Katrina (2005), Superstorm Sandy (2012), and the 2011 Joplin tornado.</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Emergency Declaration (EM)</h3>
+            <p class="mt-1 text-sm">A narrower authority used for events requiring immediate federal assistance to protect lives and property, or issued pre-emptively before a disaster strikes. Federal cost ceiling is approximately $5 million. Often issued before major hurricanes to pre-position resources. Less comprehensive than a major disaster declaration — it does not automatically unlock Individual Assistance programs for households.</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Fire Management Assistance Grant (FM)</h3>
+            <p class="mt-1 text-sm">Specific to uncontrolled wildfires threatening communities. Can be declared within hours when a fire threatens to cause major damage. Covers only fire suppression costs — no individual or public assistance programs. Western states, particularly California, Oregon, and Washington, receive the most FMAGs annually given regional fire conditions. PlainHazard's <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">hazard data</a> tracks wildfire events from NOAA separately from FEMA fire declarations.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">How a Disaster Gets Declared</h2>
+        <p>The process from event to declaration follows a specific sequence. Understanding it helps explain why some devastating events don't result in FEMA declarations and why declaration counts reflect policy as much as disaster severity.</p>
+        <ol class="mt-3 list-decimal pl-6 space-y-2 text-sm">
+          <li><strong class="text-gray-800 dark:text-gray-200">Event occurs</strong> — A hurricane, flood, tornado, or other hazard causes damage.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Local and state response</strong> — Local governments respond first, then request state emergency assistance.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Preliminary damage assessment</strong> — FEMA and state officials jointly assess damage to determine whether federal thresholds are met.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Governor's request</strong> — The governor formally requests a presidential disaster declaration.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Presidential decision</strong> — The President approves or denies the request based on FEMA's recommendation. Approval rates have historically ranged from 60-75%.</li>
+        </ol>
+        <p class="mt-3">Browse <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">state-level disaster histories</a> to see how many declarations each state has received and what types dominate.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">What the NOAA Storm Events Database Captures</h2>
+        <p>NOAA's Storm Events Database is distinct from FEMA data. It records weather events documented by National Weather Service meteorologists — regardless of whether federal aid was requested. This makes it a more complete picture of what actually occurred on the ground.</p>
+        <p class="mt-3">The database categorizes events into 55+ types covering thunderstorm winds, tornadoes, flash floods, coastal floods, hail, winter storms, blizzards, fog, drought, wildfires, dust storms, and tropical systems. Each record includes:</p>
+        <ul class="mt-3 list-disc pl-6 space-y-1 text-sm">
+          <li>Start and end date/time and location (state, county, coordinates)</li>
+          <li>Direct and indirect fatalities and injuries</li>
+          <li>Property damage and crop damage (in nominal dollars)</li>
+          <li>Narrative description from the NWS office</li>
+        </ul>
+        <p class="mt-3">PlainHazard's <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">hazard type pages</a> let you explore each NOAA event category across all states and counties.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Reading Damage Figures</h2>
+        <p>NOAA damage estimates are reported in nominal dollars by NWS offices at the time of the event — they are not inflation-adjusted and may underestimate true economic losses. Large-scale events like major hurricanes have comprehensive damage estimates; smaller localized events may have rough approximations or be listed as zero if damage was not assessed.</p>
+        <p class="mt-3">FEMA's public dataset does not include detailed damage cost figures for individual declarations — it focuses on declaration type, affected areas, and program eligibility. Damage cost data from FEMA comes from separate program-level reports not included in PlainHazard's current dataset.</p>
+      </section>
+
+      <!-- Sources -->
+      <section class="rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Data Sources</h2>
+        <ul class="text-sm space-y-2">
+          <li><strong class="text-gray-800 dark:text-gray-200">FEMA OpenFEMA:</strong> <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">Disaster Declarations Summaries v2</a> — all federal disaster declarations since 1953.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">NOAA NCEI:</strong> <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">Storm Events Database</a> — severe weather event records maintained by the National Weather Service.</li>
+        </ul>
+      </section>
+
+      <!-- Disclaimer -->
+      <div class="rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-4">
+        <p class="text-sm text-rose-800 dark:text-rose-200">This content is for informational purposes only. Always follow official guidance from local authorities and emergency services.</p>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse States</a>
+        <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse Counties</a>
+        <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">Explore Hazard Types</a>
+        <a href="/guides/natural-hazard-risk-by-region" class="text-rose-600 dark:text-rose-400 hover:underline">Hazard Risk by Region &rarr;</a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+      <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        {faqItems.map((item, i) => (
+          <details class="group px-5 py-4" open={i === 0}>
+            <summary class="flex cursor-pointer items-center justify-between font-medium text-gray-900 dark:text-gray-100 [&::-webkit-details-marker]:hidden list-none">
+              {item.q}
+              <svg class="h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a
+      }
+    }))
+  })} />
+</Base>

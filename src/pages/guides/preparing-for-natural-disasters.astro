@@ -1,0 +1,185 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export const prerender = false;
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Guides', href: '/guides/' },
+  { name: 'How to Use Hazard Data for Preparedness' },
+];
+
+const faqItems = [
+  {
+    q: 'How do I find historical disaster data for my county?',
+    a: 'PlainHazard provides county-level FEMA declaration data for 2,703 US counties. Visit the Counties section and search for your county to see how many FEMA major disaster, emergency, and fire declarations have been issued for your area since 1953. County pages also show storm event counts from NOAA data. Historical frequency is one of the most reliable indicators of ongoing risk — areas with repeated declarations share common geographic and climatological exposure.',
+  },
+  {
+    q: 'What does it mean if my county has many FEMA declarations?',
+    a: 'A high number of FEMA declarations indicates that your county has experienced repeated events severe enough to overwhelm local and state resources and trigger federal aid. This is useful baseline context for preparedness planning. However, declarations also reflect administrative and political factors — not every high-risk county has frequent declarations, and some counties with many declarations are in regions where state governments have historically been proactive about requesting federal assistance. Use FEMA data alongside NOAA storm event counts for a more complete picture.',
+  },
+  {
+    q: 'Can historical hazard data predict future risk?',
+    a: 'Historical data is one of the most reliable indicators of ongoing geographic risk, but it is not a precise predictor of future events. Hazard exposure is driven by geography, climate patterns, and regional weather systems that change slowly — a county in a tornado-prone region will likely remain in a tornado-prone region. However, climate variability means that an area with a quiet decade of disaster history can still experience a catastrophic event. Use historical patterns to understand your general hazard exposure, not to conclude that your area is "safe" because of a quiet recent period.',
+  },
+  {
+    q: 'What is the difference between hazard exposure and risk?',
+    a: 'Hazard exposure refers to the physical threat — how often a location experiences floods, tornadoes, or hurricanes. Risk combines exposure with vulnerability: who is exposed, what structures exist, and what preparedness measures are in place. Two counties with identical NOAA storm event counts can have dramatically different outcomes depending on building quality, population density, early warning systems, and community preparedness resources. PlainHazard data helps you understand exposure. Organizations like FEMA, NOAA, and state emergency management agencies provide risk assessment tools that layer in vulnerability factors.',
+  },
+  {
+    q: 'How do I use the PlainHazard hazard types data for preparedness?',
+    a: 'The hazard types section shows which NOAA storm event categories occur most frequently in your state and region. Start by identifying the top 3-5 hazard types for your state. If your state shows high tornado activity, focus preparedness on shelter-in-place planning and NOAA weather radio alerts. If your state leads in flash flood events, focus on evacuation routes, flood insurance awareness, and avoiding flood-prone areas during storms. Matching your preparedness planning to your actual geographic hazard profile is more effective than generic emergency kits without threat context.',
+  },
+  {
+    q: 'Where can I find official preparedness resources beyond this data?',
+    a: 'FEMA\'s Ready.gov (ready.gov) is the primary federal preparedness resource, covering emergency kits, family plans, and hazard-specific guidance. The National Weather Service (weather.gov) provides real-time alerts and local hazard climatologies. Your state emergency management agency publishes state-specific preparedness guides and maintains hazard mitigation plans required by FEMA. Local emergency management offices often have the most specific local guidance. Always treat PlainHazard data as context for understanding your area\'s hazard history — official preparedness resources provide actionable guidance.',
+  },
+];
+---
+
+<Base
+  title="How to Use Hazard Data for Preparedness — PlainHazard Guide"
+  description="How to use PlainHazard's FEMA and NOAA data to understand your area's historical hazard exposure and inform preparedness planning."
+  breadcrumbs={breadcrumbs}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="hover:underline text-rose-600 dark:text-rose-400">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/guides/" class="hover:underline text-rose-600 dark:text-rose-400">Guides</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-700 dark:text-gray-200">How to Use Hazard Data for Preparedness</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">How to Use Hazard Data for Preparedness</h1>
+    <p class="mt-3 text-gray-600 dark:text-gray-400">Understanding your area's historical hazard exposure using FEMA and NOAA data — and how that context supports preparedness planning.</p>
+
+    <!-- Key Takeaway -->
+    <div class="mt-6 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-5">
+      <p class="text-sm font-semibold text-amber-800 dark:text-amber-200 uppercase tracking-wide mb-1">Key Takeaway</p>
+      <p class="text-amber-900 dark:text-amber-100">Historical disaster data doesn't tell you when the next event will occur — but it reliably tells you what types of hazards your area faces and how often federal resources have been mobilized. Knowing your local hazard profile lets you match your preparedness efforts to real geographic risks rather than generic checklists.</p>
+    </div>
+
+    <!-- Strong safety notice -->
+    <div class="mt-5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-4">
+      <p class="text-sm font-semibold text-rose-800 dark:text-rose-200 mb-1">Important Safety Notice</p>
+      <p class="text-sm text-rose-800 dark:text-rose-200">This content is for informational purposes only. Always follow official guidance from local authorities and emergency services. In an active emergency, follow instructions from FEMA, NOAA, NWS, and local emergency management — not this site.</p>
+    </div>
+
+    <div class="mt-8 space-y-8 text-gray-600 dark:text-gray-400 leading-relaxed">
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Step 1: Find Your County's Declaration History</h2>
+        <p>Start with the <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">county profiles</a> section. Search for your county to see:</p>
+        <ul class="mt-3 list-disc pl-6 space-y-2 text-sm">
+          <li><strong class="text-gray-800 dark:text-gray-200">Total FEMA declarations</strong> — How many times has federal disaster assistance been mobilized for your county since 1953?</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Declaration types</strong> — Are these major disaster declarations (broad recovery aid), emergency declarations (protective response), or fire assistance grants (wildfire-specific)?</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Storm event counts</strong> — How many NOAA-documented severe weather events has your county experienced?</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Fatalities and damage</strong> — What have past events cost in lives and property in your area?</li>
+        </ul>
+        <p class="mt-3">Counties with many declarations share a common pattern: geographic exposure to a recurring hazard type. This is the most reliable signal for ongoing risk.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Step 2: Identify Your Primary Hazard Types</h2>
+        <p>After reviewing your county's overall declaration history, look at the <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">hazard types</a> section to identify which specific NOAA event categories dominate your state and region. The 55+ event types in the NOAA database represent meaningfully different threats requiring different preparedness responses.</p>
+
+        <div class="mt-4 space-y-3">
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">If tornadoes dominate your region</h3>
+            <p class="text-sm">Focus on shelter-in-place planning. Identify your home's strongest interior room away from windows. Know how to receive tornado warnings — NOAA Weather Radio, Wireless Emergency Alerts, and local sirens. Have a plan for weather events at night when visibility and warning time are reduced.</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">If floods are your primary hazard</h3>
+            <p class="text-sm">Know your evacuation routes. Understand that standard homeowner's insurance does not cover flooding — the National Flood Insurance Program (NFIP) provides separate flood coverage. Never drive through flooded roadways; "Turn Around, Don't Drown" applies even to shallow water that can conceal dangerous currents.</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">If hurricanes are a regional threat</h3>
+            <p class="text-sm">Develop both shelter-in-place and evacuation plans. Know your local evacuation zones and routes. Pre-season preparation — window protection, emergency supplies, fuel — matters because storms can make landfall with short notice timelines for preparation. Know the difference between a Watch (conditions possible in 48 hours) and a Warning (conditions expected in 36 hours).</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">If wildfires affect your region</h3>
+            <p class="text-sm">Learn your community's evacuation routes and sign up for local emergency alerts. Create defensible space around structures in the wildland-urban interface. Have a go-bag ready with medications, documents, and essential supplies — wildfire evacuations can occur with less than an hour's notice.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Step 3: Understand Frequency Patterns</h2>
+        <p>PlainHazard's <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">state profiles</a> show declaration counts by year, revealing frequency patterns. A state or county with disaster declarations in many of the last 10 years faces persistent exposure — annual or near-annual preparedness review is warranted. A state with occasional declarations still benefits from preparedness planning, but the urgency of regular review differs.</p>
+        <p class="mt-3">Frequency data is also useful for understanding seasonal risk windows. Hurricane season runs June through November, with peak activity in August-October. Tornado frequency peaks in spring across Tornado Alley and in spring and fall across Dixie Alley. Wildfire risk peaks in summer and fall in Western states during hot, dry conditions. Knowing your primary hazard's seasonal pattern helps focus preparedness actions at the right time of year.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">What Historical Data Cannot Tell You</h2>
+        <p>Federal hazard data is a powerful tool for understanding geographic exposure, but it has clear limitations for individual preparedness decisions:</p>
+        <ul class="mt-3 list-disc pl-6 space-y-2 text-sm">
+          <li><strong class="text-gray-800 dark:text-gray-200">It does not predict timing.</strong> Historical frequency does not tell you when the next event will occur. A county with 20 flood declarations since 1953 does not necessarily have a flood every year.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">It does not account for local vulnerability.</strong> Your specific location within a county matters enormously. A county flood declaration does not mean all parts of the county flooded equally. Proximity to rivers, elevation, and soil type all affect actual flood risk at a parcel level.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">It is a lagging indicator.</strong> FEMA declarations and NOAA records document past events. Ongoing changes in land use, population density, and climate patterns may alter future risk in ways historical data does not capture.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">It does not replace local knowledge.</strong> Long-term residents and local emergency management officials often have detailed knowledge of which specific areas flood, which roads are always closed first, and where community gathering points are during emergencies — knowledge that no federal dataset fully captures.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Official Preparedness Resources</h2>
+        <p>Use PlainHazard data as context. For action planning, these federal and state resources provide authoritative guidance:</p>
+        <ul class="mt-3 list-disc pl-6 space-y-2 text-sm">
+          <li><strong class="text-gray-800 dark:text-gray-200">FEMA Ready.gov:</strong> <a href="https://www.ready.gov" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">ready.gov</a> — Emergency kits, family communication plans, and hazard-specific preparation guides.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">NOAA National Weather Service:</strong> <a href="https://www.weather.gov" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">weather.gov</a> — Real-time watches, warnings, and advisories. Local office hazard climatologies.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">State emergency management agencies:</strong> Each state maintains a hazard mitigation plan and public preparedness resources. Find your state agency through FEMA's directory.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Local emergency management:</strong> County and municipal offices have the most specific local guidance, including evacuation zone maps and shelter locations.</li>
+        </ul>
+      </section>
+
+      <!-- Sources -->
+      <section class="rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Data Sources</h2>
+        <ul class="text-sm space-y-2">
+          <li><strong class="text-gray-800 dark:text-gray-200">FEMA OpenFEMA:</strong> <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">Disaster Declarations Summaries v2</a> — federal disaster declarations since 1953, 56 states and territories, 2,703 counties.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">NOAA NCEI:</strong> <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">Storm Events Database</a> — 707,000+ storm events (2015-2025), 55+ hazard types.</li>
+        </ul>
+      </section>
+
+      <!-- Cross-links -->
+      <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse States</a>
+        <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse Counties</a>
+        <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">Explore Hazard Types</a>
+        <a href="/guides/understanding-disaster-data" class="text-rose-600 dark:text-rose-400 hover:underline">Understanding FEMA Data &rarr;</a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+      <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        {faqItems.map((item, i) => (
+          <details class="group px-5 py-4" open={i === 0}>
+            <summary class="flex cursor-pointer items-center justify-between font-medium text-gray-900 dark:text-gray-100 [&::-webkit-details-marker]:hidden list-none">
+              {item.q}
+              <svg class="h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a
+      }
+    }))
+  })} />
+</Base>

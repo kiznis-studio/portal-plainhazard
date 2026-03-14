@@ -1,0 +1,180 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export const prerender = false;
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Guides', href: '/guides/' },
+  { name: 'Natural Hazard Risk by Region' },
+];
+
+const faqItems = [
+  {
+    q: 'Which US region has the most FEMA disaster declarations?',
+    a: 'The South — particularly Texas, Louisiana, Florida, Alabama, and Kentucky — leads the nation in total FEMA major disaster declarations. Texas alone has received more declarations than any other state, driven by its size and exposure to multiple hazard types: Gulf Coast hurricanes and tropical storms, spring tornado outbreaks, severe winter ice storms, and widespread flooding. The Southeast also leads in per-capita declarations when normalized by population.',
+  },
+  {
+    q: 'Where do the most tornadoes occur in the US?',
+    a: 'Tornado activity is concentrated in "Tornado Alley" — traditionally defined as Texas, Oklahoma, Kansas, Nebraska, and South Dakota — and an extended "Dixie Alley" across the lower Mississippi Valley including Mississippi, Alabama, Tennessee, and Arkansas. NOAA data shows these regions have the highest frequency and some of the highest fatality counts from tornado events. The extended Southeast corridor is particularly vulnerable because tornadoes often strike at night and in more forested terrain where visibility is limited.',
+  },
+  {
+    q: 'Which states face the highest hurricane risk?',
+    a: 'Florida has the longest Atlantic and Gulf coastline exposure and receives more named storm landfalls than any other state. Louisiana and Texas are particularly vulnerable to Gulf of Mexico storms, which can intensify rapidly in warm Gulf waters. The Carolinas and Virginia regularly experience landfalling or near-miss Atlantic hurricane systems. FEMA declaration data shows Florida, Louisiana, Texas, Mississippi, Alabama, and the Carolinas dominating Atlantic hurricane-related declarations since 1953.',
+  },
+  {
+    q: 'What states have the highest flood risk?',
+    a: 'Flooding is the most geographically widespread hazard in the US — every state experiences some form of flooding. However, NOAA storm event data shows the highest flash flood and riverine flood activity in the Appalachian region (Kentucky, West Virginia, Tennessee), the lower Mississippi Valley (Louisiana, Missouri, Illinois), and parts of the Great Plains during spring snowmelt. Coastal states like Louisiana, Florida, and New Jersey also face compound flood risk from storm surge during hurricanes.',
+  },
+  {
+    q: 'Where is wildfire risk highest in the US?',
+    a: 'The Western US — California, Oregon, Washington, Colorado, Montana, Idaho, Nevada, and Arizona — accounts for the overwhelming majority of FEMA Fire Management Assistance Grant declarations and NOAA wildfire event records. California alone receives 30-50% of all FMAGs issued nationally in recent years. Factors driving western wildfire risk include extended drought, hot dry summers, fuel accumulation from decades of fire suppression, and increasing development at the wildland-urban interface. NOAA wildfire event records are viewable on the PlainHazard hazard pages.',
+  },
+  {
+    q: 'Which region has the highest earthquake risk?',
+    a: 'The Pacific Coast — Alaska, California, Oregon, and Washington — sits along the Pacific Ring of Fire and experiences the highest earthquake frequency. Alaska is seismically the most active state. The Cascadia Subduction Zone off the Pacific Northwest coast poses the risk of a magnitude 8-9 megathrust earthquake. A second high-risk zone is the New Madrid Seismic Zone underlying Missouri, Arkansas, Tennessee, and Kentucky — the site of the largest historical earthquakes in the continental US in 1811-1812. The NOAA Storm Events Database does not track earthquakes; earthquake data comes from the USGS.',
+  },
+];
+---
+
+<Base
+  title="Natural Hazard Risk by Region — PlainHazard Guide"
+  description="Which US regions face the most hurricanes, tornadoes, floods, wildfires, and earthquakes. Geographic patterns from FEMA and NOAA federal data."
+  breadcrumbs={breadcrumbs}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="hover:underline text-rose-600 dark:text-rose-400">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/guides/" class="hover:underline text-rose-600 dark:text-rose-400">Guides</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-700 dark:text-gray-200">Natural Hazard Risk by Region</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Natural Hazard Risk by Region</h1>
+    <p class="mt-3 text-gray-600 dark:text-gray-400">Geographic patterns in US natural hazard exposure, based on FEMA disaster declarations since 1953 and NOAA storm event records through 2025.</p>
+
+    <!-- Key Takeaway -->
+    <div class="mt-6 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-5">
+      <p class="text-sm font-semibold text-amber-800 dark:text-amber-200 uppercase tracking-wide mb-1">Key Takeaway</p>
+      <p class="text-amber-900 dark:text-amber-100">No region of the United States is free from natural hazard risk — the hazards simply differ by geography. The South and Gulf Coast face hurricanes and tornadoes. The West faces wildfires and earthquakes. The Midwest faces tornadoes and floods. Every county in the PlainHazard dataset has recorded at least one significant weather event.</p>
+    </div>
+
+    <div class="mt-8 space-y-8 text-gray-600 dark:text-gray-400 leading-relaxed">
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Hurricanes and Tropical Systems</h2>
+        <p>The Gulf Coast and Atlantic Seaboard bear the brunt of US hurricane impacts. Florida leads all states in hurricane-related FEMA declarations given its geographic exposure on two coasts. Louisiana and Texas face frequent Gulf storm landfalls — often with rapid intensification over warm Gulf waters that leaves little preparation time.</p>
+        <p class="mt-3">The hurricane risk corridor extends north through the Carolinas and Virginia, where nor'easters and landfalling tropical systems can cause severe flooding and wind damage far inland. Inland flooding from rainfall — not wind — accounts for the majority of hurricane fatalities and much of the damage documented in NOAA storm records.</p>
+        <p class="mt-3">Explore hurricane-affected states: <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">State disaster profiles</a> show each state's full declaration history and storm event counts.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Tornadoes</h2>
+        <p>The US experiences more tornadoes than any other country on Earth, averaging 1,000-1,200 confirmed tornadoes per year. Two primary high-risk corridors emerge from the NOAA data:</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Traditional Tornado Alley</h3>
+            <p class="text-sm">Texas, Oklahoma, Kansas, Nebraska, South Dakota. Frequent spring and early summer outbreak activity driven by collisions of warm Gulf moisture and cold dry air from the Rockies. High-intensity tornadoes but often in lower-density rural areas.</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Dixie Alley</h3>
+            <p class="text-sm">Mississippi, Alabama, Tennessee, Georgia, Arkansas. Extended tornado seasons including fall and winter outbreaks. Higher fatality rates relative to event frequency — denser forest cover, higher rural poverty, more mobile homes, and a larger share of nighttime tornadoes reduce warning effectiveness.</p>
+          </div>
+        </div>
+        <p class="mt-3">Browse tornado event data by state and county on the <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">hazard types page</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Flooding</h2>
+        <p>Flooding is the single most costly and widespread natural hazard in the United States by FEMA declaration count. Unlike geographically concentrated hazards like hurricanes, flooding can occur in every state and is responsible for more FEMA declarations than any other disaster type.</p>
+        <p class="mt-3">Key flood-prone regions based on NOAA event frequency and FEMA data:</p>
+        <ul class="mt-2 list-disc pl-6 space-y-2 text-sm">
+          <li><strong class="text-gray-800 dark:text-gray-200">Appalachian Region:</strong> Kentucky, West Virginia, and Tennessee experience severe flash flooding in narrow mountain valleys with limited warning time. Some counties hold decades of repeated flood declarations.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Mississippi River Basin:</strong> Missouri, Illinois, Iowa, and Louisiana face periodic major riverine floods. The 1993 Great Flood and 2019 Missouri-Mississippi flooding are among the costliest on record.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Gulf Coast:</strong> Louisiana, Texas, and Florida face compound flood risk from storm surge, riverine flooding, and tidal flooding — often simultaneously during tropical events.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Great Plains:</strong> Spring snowmelt and intense convective storms create recurring flash flood risk across Nebraska, Kansas, and Oklahoma.</li>
+        </ul>
+        <p class="mt-3">Explore flood-prone counties using PlainHazard's <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">county-level data</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Wildfires</h2>
+        <p>Wildfire risk in the US is heavily concentrated in the West. California has received more FEMA Fire Management Assistance Grants than any other state, often accounting for 30-50% of all FMAGs issued nationally in active fire years. Oregon, Washington, Colorado, Montana, Idaho, Nevada, and Arizona round out the highest-risk states.</p>
+        <p class="mt-3">The interaction of drought, high temperatures, low humidity, wind, and accumulated fuel loads creates conditions for rapid fire spread. Development at the wildland-urban interface has dramatically increased the human and economic toll — NOAA damage records for western wildfires have grown substantially since 2000.</p>
+        <p class="mt-3">Notably, the Southeast also has a significant prescribed and uncontrolled fire problem — Florida and Georgia rank among the top FMAG recipients outside the Mountain West.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Winter Storms and Ice Events</h2>
+        <p>While winter storms receive less media attention than hurricanes and tornadoes, NOAA data shows they generate significant fatality and damage totals, particularly across the Northern Plains, Great Lakes region, and New England. The most dangerous winter events in the NOAA database are ice storms — freezing rain events that coat roads, power lines, and trees with ice, causing extended power outages and transportation disruptions.</p>
+        <p class="mt-3">The February 2021 winter storm that struck Texas (Winter Storm Uri) demonstrated that historically mild-climate regions can face catastrophic winter weather impacts when infrastructure is not hardened for extreme cold — it generated one of the costliest NOAA-recorded winter events in history.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Using PlainHazard to Explore Regional Risk</h2>
+        <p>PlainHazard provides several ways to explore geographic hazard patterns:</p>
+        <ul class="mt-2 list-disc pl-6 space-y-2 text-sm">
+          <li><a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">State profiles</a> — FEMA declarations, storm event counts, fatalities, and damage by state</li>
+          <li><a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">County profiles</a> — FEMA declarations at the county level for 2,703 counties</li>
+          <li><a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">Hazard types</a> — 55+ NOAA event types with geographic breakdowns</li>
+          <li><a href="/rankings/most-disasters" class="text-rose-600 dark:text-rose-400 hover:underline">Rankings</a> — Most disaster-prone states, costliest states, deadliest states</li>
+        </ul>
+      </section>
+
+      <!-- Sources -->
+      <section class="rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 p-5">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Data Sources</h2>
+        <ul class="text-sm space-y-2">
+          <li><strong class="text-gray-800 dark:text-gray-200">FEMA OpenFEMA:</strong> <a href="https://www.fema.gov/about/openfema/data-sets" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">Disaster Declarations Summaries v2</a> — 10,000+ federal disaster declarations since 1953 across 56 states and territories.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">NOAA NCEI:</strong> <a href="https://www.ncdc.noaa.gov/stormevents/" target="_blank" rel="noopener" class="text-rose-600 dark:text-rose-400 hover:underline">Storm Events Database</a> — 707,000+ storm events (2015-2025) covering 55+ hazard types.</li>
+        </ul>
+      </section>
+
+      <!-- Disclaimer -->
+      <div class="rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-4">
+        <p class="text-sm text-rose-800 dark:text-rose-200">This content is for informational purposes only. Always follow official guidance from local authorities and emergency services.</p>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse States</a>
+        <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">Browse Counties</a>
+        <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">Explore Hazard Types</a>
+        <a href="/guides/preparing-for-natural-disasters" class="text-rose-600 dark:text-rose-400 hover:underline">Using Data for Preparedness &rarr;</a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+      <div class="divide-y divide-gray-100 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        {faqItems.map((item, i) => (
+          <details class="group px-5 py-4" open={i === 0}>
+            <summary class="flex cursor-pointer items-center justify-between font-medium text-gray-900 dark:text-gray-100 [&::-webkit-details-marker]:hidden list-none">
+              {item.q}
+              <svg class="h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a
+      }
+    }))
+  })} />
+</Base>
