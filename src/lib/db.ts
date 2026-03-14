@@ -384,6 +384,52 @@ export async function getMeta(db: D1Database): Promise<Record<string, string>> {
   return map;
 }
 
+// Related counties (same state, sorted by disaster count similarity)
+export async function getRelatedCounties(db: D1Database, stateCode: string, currentFips: string, currentDisasters: number, limit = 6): Promise<County[]> {
+  const { results } = await db.prepare(
+    `SELECT * FROM counties
+     WHERE state_code = ? AND fips <> ?
+     ORDER BY ABS(total_disasters - ?) ASC, name COLLATE NOCASE ASC
+     LIMIT ?`
+  ).bind(stateCode, currentFips, currentDisasters, limit).all<County>();
+  return results;
+}
+
+// State average disasters per county
+export async function getStateAvgDisasters(db: D1Database, stateCode: string): Promise<{ avg_disasters: number; county_count: number }> {
+  const row = await db.prepare(
+    `SELECT AVG(total_disasters) as avg_disasters, COUNT(*) as county_count
+     FROM counties WHERE state_code = ?`
+  ).bind(stateCode).first<{ avg_disasters: number; county_count: number }>();
+  return row ?? { avg_disasters: 0, county_count: 0 };
+}
+
+// National average disasters per county
+export function getNationalAvgDisasters(db: D1Database): Promise<{ avg_disasters: number; county_count: number }> {
+  return cached('national-avg-disasters', async () => {
+    const row = await db.prepare(
+      `SELECT AVG(total_disasters) as avg_disasters, COUNT(*) as county_count FROM counties`
+    ).first<{ avg_disasters: number; county_count: number }>();
+    return row ?? { avg_disasters: 0, county_count: 0 };
+  });
+}
+
+// Storm events for a specific state (aggregated by type for county context)
+export async function getStormEventsByStateAgg(db: D1Database, stateCode: string): Promise<{ event_type: string; total_events: number; total_fatalities: number; total_injuries: number; total_property_damage: number; total_crop_damage: number }[]> {
+  const { results } = await db.prepare(
+    `SELECT event_type,
+            SUM(events) as total_events,
+            SUM(fatalities) as total_fatalities,
+            SUM(injuries) as total_injuries,
+            SUM(property_damage) as total_property_damage,
+            SUM(crop_damage) as total_crop_damage
+     FROM storm_events WHERE state = ?
+     GROUP BY event_type
+     ORDER BY total_events DESC`
+  ).bind(stateCode).all();
+  return results as any[];
+}
+
 // Slugs for sitemaps
 export function getAllStateSlugs(db: D1Database): Promise<{ slug: string }[]> {
   return cached('slugs-states', async () => {

@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCounty, getDisastersByCounty, getNfipByCounty, fmtNumber, fmtDamage } from '../../lib/db';
+import { getCounty, getDisastersByCounty, getNfipByCounty, getRelatedCounties, getStateAvgDisasters, getNationalAvgDisasters, getStormEventsByStateAgg, fmtNumber, fmtDamage } from '../../lib/db';
 
 const { slug } = Astro.params;
 const db = (Astro.locals as any).runtime.env.DB;
@@ -8,9 +8,13 @@ const db = (Astro.locals as any).runtime.env.DB;
 const county = await getCounty(db, slug!);
 if (!county) return Astro.redirect('/404');
 
-const [disasters, nfip] = await Promise.all([
+const [disasters, nfip, relatedCounties, stateAvg, nationalAvg, stateStormTypes] = await Promise.all([
   getDisastersByCounty(db, county.fips),
   getNfipByCounty(db, county.fips),
+  getRelatedCounties(db, county.state_code, county.fips, county.total_disasters, 6),
+  getStateAvgDisasters(db, county.state_code),
+  getNationalAvgDisasters(db),
+  getStormEventsByStateAgg(db, county.state_code),
 ]);
 
 // Group disasters by type
@@ -22,7 +26,145 @@ const disasterTypeList = [...typeMap.entries()]
   .map(([type, count]) => ({ type, count }))
   .sort((a, b) => b.count - a.count);
 
+// Group disasters by year for timeline
+const yearMap = new Map<number, number>();
+for (const d of disasters) {
+  const year = d.fiscal_year || parseInt(d.declaration_date?.split('-')[0] || '0');
+  if (year > 0) yearMap.set(year, (yearMap.get(year) || 0) + 1);
+}
+const disastersByYear = [...yearMap.entries()]
+  .map(([year, count]) => ({ year, count }))
+  .sort((a, b) => b.year - a.year);
+
+// Group disasters by declaration type (DR=Major, EM=Emergency, FM=Fire Mgmt)
+const declTypeMap = new Map<string, number>();
+for (const d of disasters) {
+  const label = d.declaration_type === 'DR' ? 'Major Disaster' :
+                d.declaration_type === 'EM' ? 'Emergency' :
+                d.declaration_type === 'FM' ? 'Fire Management' : d.declaration_type;
+  declTypeMap.set(label, (declTypeMap.get(label) || 0) + 1);
+}
+const declTypeList = [...declTypeMap.entries()]
+  .map(([type, count]) => ({ type, count }))
+  .sort((a, b) => b.count - a.count);
+
 const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
+const countyState = `${county.name} County, ${county.state_code}`;
+
+// Risk comparison
+const vsState = stateAvg.avg_disasters > 0
+  ? ((county.total_disasters - stateAvg.avg_disasters) / stateAvg.avg_disasters * 100)
+  : 0;
+const vsNational = nationalAvg.avg_disasters > 0
+  ? ((county.total_disasters - nationalAvg.avg_disasters) / nationalAvg.avg_disasters * 100)
+  : 0;
+const riskLevel = county.total_disasters >= 10 ? 'High' :
+                  county.total_disasters >= 5 ? 'Moderate' :
+                  county.total_disasters >= 2 ? 'Low' : 'Very Low';
+
+// Top storm types for the state (for context)
+const topStateStorms = stateStormTypes.slice(0, 5);
+
+// Duration span
+const dataSpan = county.latest_disaster_year && county.first_disaster_year
+  ? county.latest_disaster_year - county.first_disaster_year
+  : 0;
+const avgPerYear = dataSpan > 0 ? (county.total_disasters / dataSpan).toFixed(1) : '—';
+
+// --- FAQ Generation ---
+const faqItems: { q: string; a: string }[] = [];
+
+faqItems.push({
+  q: `How many natural disasters has ${county.name} County, ${county.state_name} had?`,
+  a: `${county.name} County, ${county.state_name} has received ${fmtNumber(county.total_disasters)} FEMA disaster declarations${county.first_disaster_year ? ` from ${county.first_disaster_year} to ${county.latest_disaster_year || 'present'}` : ''}.${county.major_disasters > 0 ? ` Of these, ${fmtNumber(county.major_disasters)} were major disaster declarations.` : ''}`
+});
+
+if (county.top_incident_type) {
+  const topCount = disasterTypeList.find(d => d.type === county.top_incident_type)?.count || 0;
+  faqItems.push({
+    q: `What is the most common disaster type in ${county.name} County?`,
+    a: `The most common disaster type in ${county.name} County is ${county.top_incident_type}, with ${fmtNumber(topCount)} declaration${topCount !== 1 ? 's' : ''}. ${disasterTypeList.length > 1 ? `Other disaster types include ${disasterTypeList.filter(d => d.type !== county.top_incident_type).slice(0, 3).map(d => `${d.type} (${d.count})`).join(', ')}.` : ''}`
+  });
+}
+
+faqItems.push({
+  q: `How does ${county.name} County's disaster risk compare to the ${county.state_name} average?`,
+  a: `${county.name} County has ${fmtNumber(county.total_disasters)} disaster declarations, which is ${Math.abs(Math.round(vsState))}% ${vsState >= 0 ? 'higher' : 'lower'} than the ${county.state_name} county average of ${stateAvg.avg_disasters.toFixed(1)} declarations. Compared to the national county average of ${nationalAvg.avg_disasters.toFixed(1)}, it is ${Math.abs(Math.round(vsNational))}% ${vsNational >= 0 ? 'higher' : 'lower'}.`
+});
+
+if (county.major_disasters > 0) {
+  const majorPct = county.total_disasters > 0 ? (county.major_disasters / county.total_disasters * 100).toFixed(0) : '0';
+  faqItems.push({
+    q: `How many major FEMA disaster declarations has ${county.name} County received?`,
+    a: `${county.name} County has received ${fmtNumber(county.major_disasters)} major disaster declaration${county.major_disasters !== 1 ? 's' : ''}, representing ${majorPct}% of all ${fmtNumber(county.total_disasters)} disaster declarations. Major disaster declarations typically involve significant damage requiring federal assistance.`
+  });
+}
+
+if (topStateStorms.length > 0) {
+  faqItems.push({
+    q: `What types of storms are most common in ${county.state_name}?`,
+    a: `The most common storm types in ${county.state_name} include ${topStateStorms.slice(0, 3).map(s => `${s.event_type} (${fmtNumber(s.total_events)} events)`).join(', ')}. NOAA storm event data covers severe weather from 2015 to 2025.`
+  });
+}
+
+if (nfip && nfip.claims > 0) {
+  faqItems.push({
+    q: `How many flood insurance claims has ${county.name} County filed?`,
+    a: `${county.name} County has ${fmtNumber(nfip.claims)} National Flood Insurance Program (NFIP) claims totaling ${fmtDamage(nfip.total_paid)} in payments, with an average of ${fmtDamage(nfip.avg_paid)} per claim.`
+  });
+}
+
+if (disastersByYear.length >= 2) {
+  const mostActiveYear = disastersByYear.reduce((a, b) => a.count > b.count ? a : b);
+  faqItems.push({
+    q: `What was the worst year for disasters in ${county.name} County?`,
+    a: `The most active year for disaster declarations in ${county.name} County was ${mostActiveYear.year}, with ${fmtNumber(mostActiveYear.count)} declaration${mostActiveYear.count !== 1 ? 's' : ''}. The county has FEMA disaster data spanning ${county.first_disaster_year || '—'} to ${county.latest_disaster_year || 'present'}.`
+  });
+}
+
+faqItems.push({
+  q: `What is the overall disaster risk level for ${county.name} County?`,
+  a: `Based on FEMA declaration history, ${county.name} County has a ${riskLevel.toLowerCase()} disaster risk level with ${fmtNumber(county.total_disasters)} total declarations. ${riskLevel === 'High' ? 'This county has significantly more disaster declarations than average.' : riskLevel === 'Moderate' ? 'This county has a moderate number of disaster declarations.' : 'This county has relatively few disaster declarations compared to the national average.'}`
+});
+
+// FAQ Schema
+const faqSchema = faqItems.length > 0 ? JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}) : null;
+
+// Dataset Schema
+const datasetSchema = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: `FEMA Disaster Declarations for ${county.name} County, ${county.state_name}`,
+  description: `${fmtNumber(county.total_disasters)} FEMA disaster declarations for ${county.name} County, ${county.state_name} (${county.first_disaster_year || '—'}–${county.latest_disaster_year || 'present'}). Includes disaster types, declaration timeline, and flood insurance data.`,
+  url: `https://plainhazard.com/county/${county.slug}`,
+  temporalCoverage: `${county.first_disaster_year || ''}/${county.latest_disaster_year || ''}`,
+  spatialCoverage: {
+    '@type': 'Place',
+    name: `${county.name} County, ${county.state_name}`,
+  },
+  creator: {
+    '@type': 'Organization',
+    name: 'FEMA',
+    url: 'https://www.fema.gov',
+  },
+  distribution: {
+    '@type': 'DataDownload',
+    encodingFormat: 'text/html',
+    contentUrl: `https://plainhazard.com/county/${county.slug}`,
+  },
+});
+
+// Cross-portal URL helpers
+const stateSlugLower = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
+const countySlugForCross = county.name?.toLowerCase().replace(/\s+/g, '-') || '';
 ---
 
 <Base
@@ -35,6 +177,7 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
     { name: county.name },
   ]}
 >
+  <!-- Hero Section -->
   <section class="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
     <div class="mx-auto max-w-7xl px-4 py-8 md:py-12">
       <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -49,6 +192,7 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
       <h1 class="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100 md:text-4xl">{county.name}, {county.state_code}</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-400">
         FEMA disaster declaration history for {county.name} County, {county.state_name}.
+        {county.total_disasters > 0 && ` ${fmtNumber(county.total_disasters)} declarations since ${county.first_disaster_year || '—'}.`}
       </p>
 
       <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -73,10 +217,46 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
   </section>
 
   <div class="mx-auto max-w-7xl px-4 py-8">
+    <!-- Risk Assessment -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Risk Assessment</h2>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        How {county.name} County's disaster history compares to state and national averages.
+      </p>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Risk Level</p>
+          <p class={`mt-1 text-lg font-bold ${riskLevel === 'High' ? 'text-amber-600 dark:text-amber-400' : riskLevel === 'Moderate' ? 'text-yellow-600 dark:text-yellow-400' : 'text-teal-600 dark:text-teal-400'}`}>{riskLevel}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">vs. {county.state_name} Avg</p>
+          <p class={`mt-1 text-lg font-bold ${vsState >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-teal-600 dark:text-teal-400'}`}>
+            {vsState >= 0 ? '+' : ''}{Math.round(vsState)}%
+          </p>
+          <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">State avg: {stateAvg.avg_disasters.toFixed(1)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">vs. National Avg</p>
+          <p class={`mt-1 text-lg font-bold ${vsNational >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-teal-600 dark:text-teal-400'}`}>
+            {vsNational >= 0 ? '+' : ''}{Math.round(vsNational)}%
+          </p>
+          <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">National avg: {nationalAvg.avg_disasters.toFixed(1)}</p>
+        </div>
+        <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Avg Per Year</p>
+          <p class="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">{avgPerYear}</p>
+          <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{dataSpan > 0 ? `Over ${dataSpan} years` : '—'}</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Disaster Types -->
     {disasterTypeList.length > 0 && (
       <section class="mb-10">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Disaster Types</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Breakdown of {fmtNumber(county.total_disasters)} FEMA disaster declarations in {county.name} County by incident type.
+        </p>
         <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {disasterTypeList.map(dt => (
             <div class="flex items-center justify-between rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
@@ -88,10 +268,78 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
       </section>
     )}
 
-    <!-- Disaster Declarations -->
+    <!-- Hazard Type Breakdown (Declaration Types) -->
+    {declTypeList.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Declaration Types</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          FEMA categorizes declarations as Major Disasters (DR), Emergencies (EM), or Fire Management Assistance (FM).
+        </p>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {declTypeList.map(dt => {
+            const pct = county.total_disasters > 0 ? (dt.count / county.total_disasters * 100).toFixed(0) : '0';
+            return (
+              <div class="rounded-lg bg-white p-4 ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{dt.type}</span>
+                  <span class="text-lg font-bold text-brand-600 dark:text-brand-400">{fmtNumber(dt.count)}</span>
+                </div>
+                <div class="mt-2 h-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                  <div class="h-2 rounded-full bg-brand-500" style={`width: ${pct}%`}></div>
+                </div>
+                <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{pct}% of all declarations</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- FEMA Declarations Timeline -->
+    {disastersByYear.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">FEMA Declarations Timeline</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Disaster declarations per year for {county.name} County.
+        </p>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Year</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Declarations</th>
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {disastersByYear.map(dy => {
+                const maxCount = Math.max(...disastersByYear.map(d => d.count));
+                const barWidth = maxCount > 0 ? (dy.count / maxCount * 100) : 0;
+                return (
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                    <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{dy.year}</td>
+                    <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(dy.count)}</td>
+                    <td class="px-3 py-3 w-1/2">
+                      <div class="h-4 rounded bg-brand-500/20 dark:bg-brand-500/10" style={`width: ${barWidth}%`}>
+                        <div class="h-4 rounded bg-brand-500" style={`width: 100%`}></div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <!-- Disaster Declarations (Full Table) -->
     {disasters.length > 0 && (
       <section class="mb-10">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Disaster Declarations</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          All {fmtNumber(disasters.length)} FEMA disaster declarations for {county.name} County, {county.state_name}.
+        </p>
         <div class="mt-4 overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -119,11 +367,48 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
       </section>
     )}
 
+    <!-- Storm Events Analysis (State Level) -->
+    {topStateStorms.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Storm Events in {county.state_name}</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          NOAA severe weather data for {county.state_name} (2015–2025). Storm event data is tracked at the state level.
+        </p>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="px-3 py-3 text-left font-semibold text-gray-900 dark:text-gray-100">Storm Type</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Events</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Fatalities</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Injuries</th>
+                <th class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">Property Damage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topStateStorms.map(st => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50">
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">{st.event_type}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-900 dark:text-gray-100">{fmtNumber(st.total_events)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(st.total_fatalities)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtNumber(st.total_injuries)}</td>
+                  <td class="px-3 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{fmtDamage(st.total_property_damage)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+          Source: NOAA Storm Events Database. State-level aggregated data, 2015–2025.
+        </p>
+      </section>
+    )}
+
     <!-- NFIP Flood Insurance Claims -->
     {nfip && nfip.claims > 0 && (
       <section class="mb-10">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">NFIP Flood Insurance Claims</h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
           National Flood Insurance Program claims history for {county.name} County from FEMA NFIP data.
         </p>
         <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
@@ -146,7 +431,65 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
       </section>
     )}
 
-    <!-- Related -->
+    <!-- Counties with Similar Risk -->
+    {relatedCounties.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Counties with Similar Risk in {county.state_name}</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Other {county.state_name} counties with similar disaster declaration counts.
+        </p>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {relatedCounties.map(rc => (
+            <a href={`/county/${rc.slug}`} class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+              <div class="flex items-center justify-between">
+                <span class="font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">{rc.name}</span>
+                <span class="text-sm font-bold text-brand-600 dark:text-brand-400">{fmtNumber(rc.total_disasters)}</span>
+              </div>
+              <div class="mt-1 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                <span>{fmtNumber(rc.major_disasters)} major</span>
+                {rc.top_incident_type && <span>{rc.top_incident_type}</span>}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Cross-Portal Data Links -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">More About {county.name} County</h2>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        Explore additional data for {county.name} County, {county.state_name} across our network of public data portals.
+      </p>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <a href={`https://plainpropertytax.com/states/${stateSlugLower}`} target="_blank" rel="noopener" class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+          <p class="text-sm font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">Property Tax Data</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">View property tax rates and assessments for {county.state_name} counties — understand disaster impact on property values.</p>
+        </a>
+        <a href={`https://plainrent.com/states/${stateSlugLower}`} target="_blank" rel="noopener" class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+          <p class="text-sm font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">Fair Market Rents</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">HUD fair market rent data for {county.state_name} — see how housing costs relate to disaster-prone areas.</p>
+        </a>
+        <a href={`https://plainroadsafety.com/state/${stateSlugLower}`} target="_blank" rel="noopener" class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+          <p class="text-sm font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">Road Safety Data</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Traffic fatality and road safety data for {county.state_name} — weather-related crashes in disaster-prone regions.</p>
+        </a>
+        <a href={`https://plainwaterdata.com/state/${stateSlugLower}`} target="_blank" rel="noopener" class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+          <p class="text-sm font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">Water Quality</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Drinking water quality and violations for {county.state_name} — natural disasters can impact water infrastructure.</p>
+        </a>
+        <a href={`https://plainenviro.com/states/${stateSlugLower}`} target="_blank" rel="noopener" class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+          <p class="text-sm font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">Environmental Data</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">EPA environmental facility data for {county.state_name} — environmental risks alongside natural hazards.</p>
+        </a>
+        <a href={`https://plainairdata.com/state/${stateSlugLower}`} target="_blank" rel="noopener" class="group rounded-lg bg-white p-4 ring-1 ring-gray-100 transition-colors hover:ring-brand-300 dark:bg-gray-900 dark:ring-gray-800 dark:hover:ring-brand-700">
+          <p class="text-sm font-medium text-gray-900 group-hover:text-brand-600 dark:text-gray-100 dark:group-hover:text-brand-400">Air Quality</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">EPA air quality index data for {county.state_name} — wildfires and storms affect air quality.</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Related Links -->
     <section class="mb-8">
       <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Related</h2>
       <div class="mt-3 flex flex-wrap gap-3">
@@ -156,11 +499,61 @@ const stateSlug = county.state_name?.toLowerCase().replace(/\s+/g, '-') || '';
         <a href="/counties/" class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
           All Counties
         </a>
+        <a href="/rankings/most-disasters" class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+          Most Disasters
+        </a>
+        <a href="/hazards/" class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+          All Hazard Types
+        </a>
       </div>
     </section>
 
-    <p class="text-xs text-gray-400 dark:text-gray-500">
-      Source: FEMA OpenFEMA Disaster Declarations Summaries v2. For informational purposes only.
-    </p>
+    <!-- FAQ Section -->
+    {faqItems.length > 0 && (
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Frequently Asked Questions</h2>
+        <div class="mt-4 space-y-3">
+          {faqItems.map(f => (
+            <details class="group rounded-lg bg-white ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+              <summary class="flex cursor-pointer items-center justify-between p-4 font-medium text-gray-900 dark:text-gray-100">
+                {f.q}
+                <svg class="h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </summary>
+              <div class="border-t border-gray-100 px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-400">
+                {f.a}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Data Sources & Methodology -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Data Sources & Methodology</h2>
+      <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 space-y-2">
+        <p>
+          Disaster declaration data comes from the <strong>FEMA OpenFEMA Disaster Declarations Summaries v2</strong> API,
+          which includes all federally declared disasters, emergencies, and fire management assistance grants.
+        </p>
+        <p>
+          Storm event data is sourced from the <strong>NOAA Storm Events Database</strong> (2015–2025),
+          which tracks significant weather events including thunderstorms, tornadoes, floods, and winter storms.
+        </p>
+        {nfip && nfip.claims > 0 && (
+          <p>
+            Flood insurance data comes from the <strong>FEMA National Flood Insurance Program (NFIP)</strong>
+            OpenFEMA claims dataset.
+          </p>
+        )}
+        <p class="text-xs text-gray-400 dark:text-gray-500">
+          This data is provided for informational purposes only. FEMA disaster declarations represent federal
+          response actions and may not capture all local emergencies or weather events.
+        </p>
+      </div>
+    </section>
   </div>
+
+  {faqSchema && <script type="application/ld+json" set:html={faqSchema} />}
+  <script type="application/ld+json" set:html={datasetSchema} />
 </Base>
