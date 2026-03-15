@@ -68,33 +68,52 @@ const breadcrumbSchema = (() => {
         document.documentElement.classList.add('dark');
       }
     </script>
-
-    <!-- Consent Mode v2 defaults — MUST come before any Google tags -->
+    <!-- Google Privacy & Messaging API (enables consent banners configured in AdSense console) -->
     <script is:inline>
-      window.dataLayer=window.dataLayer||[];
-      function gtag(){dataLayer.push(arguments)}
-      gtag('consent','default',{
-        'ad_storage':'denied',
-        'ad_user_data':'denied',
-        'ad_personalization':'denied',
-        'analytics_storage':'granted',
-        'wait_for_update':500
-      });
-      gtag('consent','default',{
-        'ad_storage':'granted',
-        'ad_user_data':'granted',
-        'ad_personalization':'granted',
-        'analytics_storage':'granted',
-        'region':['US']
-      });
+      window.googlefc = window.googlefc || {};
+      window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
     </script>
-    <!-- GA4 -->
+
+    <!-- Google Consent Mode v2 — MUST fire before any Google tags load
+         Docs: https://developers.google.com/tag-platform/security/guides/consent
+         Script order: googlefc init → consent defaults → gtag.js → gtag config → adsbygoogle.js -->
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments)}
+
+      // Global default: DENY ad-related consent (GDPR-safe for EU/EEA/UK/CH)
+      // Google's Privacy & Messaging will show consent banner and call gtag('consent','update') on accept
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'granted',
+        'functionality_storage': 'granted',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted',
+        'wait_for_update': 500
+      });
+
+      // US: CCPA/CPRA is opt-out model — default granted, user opts out via "Do Not Sell" message
+      gtag('consent', 'default', {
+        'ad_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'analytics_storage': 'granted',
+        'personalization_storage': 'granted',
+        'region': ['US']
+      });
+
+      // Advanced: preserve measurement even when consent denied
+      gtag('set', 'url_passthrough', true);
+      gtag('set', 'ads_data_redaction', true);
+    </script>
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-J612PJ43F5"></script>
-    <script is:inline>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-J612PJ43F5');</script>
-    <!-- Umami -->
-    <script defer src="https://analytics.opspixel.com/script.js" data-website-id="12ddb580-2fde-4e9b-b9d0-fe2a490fc75e"></script>
-    <!-- AdSense -->
-    <script defer src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7887321168925353" crossorigin="anonymous"></script>
+    <script is:inline>gtag('js',new Date());gtag('config','G-J612PJ43F5');</script>
+
+    <!-- AdSense (also deploys Privacy & Messaging consent banners configured in AdSense console) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7887321168925353" crossorigin="anonymous"></script>
   </head>
 
   <body class="flex min-h-screen flex-col">
