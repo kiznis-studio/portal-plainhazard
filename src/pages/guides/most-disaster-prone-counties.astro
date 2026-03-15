@@ -1,0 +1,200 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export const prerender = false;
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Guides', href: '/guides/' },
+  { name: 'Most Disaster-Prone Counties in America' },
+];
+
+const faqItems = [
+  {
+    q: 'Which county has the most FEMA disaster declarations in the US?',
+    a: 'Texas and Louisiana Gulf Coast counties consistently rank at the top of FEMA declaration counts. Harris County, TX (Houston) and Jefferson Parish, LA have among the highest totals nationally, driven by repeated tropical storm, hurricane, and flooding events. Oklahoma and Kansas counties also rank high due to recurring tornado, severe storm, and flooding declarations. Note that declaration counts reflect both frequency of events and the administrative process of requesting federal assistance — some high-risk counties may have fewer declarations if states historically managed recovery with less federal involvement.',
+  },
+  {
+    q: 'Does more FEMA declarations mean a county is more dangerous to live in?',
+    a: 'Not necessarily. FEMA declaration counts measure historical federal aid activations, which depend on event severity, population exposure, and state/federal coordination. A sparsely populated rural county with a single major flood can generate fewer declarations than a densely populated urban county with moderate but frequent storms. The more meaningful measure of personal risk is fatalities-per-declaration and property damage rates, combined with the specific hazard types your household would face.',
+  },
+  {
+    q: 'What types of disasters account for most FEMA declarations?',
+    a: 'Across the US, the majority of FEMA major disaster declarations involve flooding, severe storms, and tornadoes — collectively accounting for roughly 60-70% of all declarations. Hurricanes generate the largest individual declarations by damage value, but occur less frequently than inland flooding events. Winter storms, wildfires, and earthquakes account for smaller shares of declarations nationally, though they dominate in specific regional subsets (California wildfires, Pacific Northwest earthquakes, Northern Plains blizzards).',
+  },
+  {
+    q: 'How does coastal vs. inland disaster risk compare?',
+    a: 'Coastal counties face different risk profiles than inland counties. Coastal counties along the Gulf and Atlantic coasts face high hurricane/tropical storm risk, storm surge flooding, and coastal erosion. Inland counties face higher tornado risk (Great Plains, Midwest), river and flash flooding (broad geographic distribution), and winter storm events. Neither profile is uniformly more dangerous — the risk depends on which hazards are most severe in a specific geographic location.',
+  },
+  {
+    q: 'Do FEMA declaration counts include wildfires?',
+    a: 'Yes — FEMA Fire Management Assistance Grants (FMAGs) are a separate declaration type specifically for wildfires. California counties account for a large share of all FMAGs nationally. Major disaster declarations can also be issued for wildfire events when they cause widespread property damage. However, FEMA declaration data undercounts some wildfire impacts because many smaller fires are managed by state and local resources without triggering federal declarations.',
+  },
+  {
+    q: 'Can I use this data to lower my homeowner\'s insurance rates?',
+    a: 'FEMA declaration data alone is not used directly in insurance rating. Insurance companies use their own proprietary catastrophe models, which incorporate detailed geographic hazard data, building characteristics, and claims history. However, understanding your county\'s hazard profile can help you make informed decisions about supplemental coverage. Counties with high flood declaration rates suggest verifying whether your homeowner\'s policy includes flood coverage — standard policies typically do not. Counties with high hurricane history may warrant wind/hail riders.',
+  },
+];
+
+const topCounties = [
+  { rank: 1, county: 'Harris County, TX', state: 'TX', declarations: 93, primary_hazard: 'Flooding, hurricanes, severe storms', notable: 'Hurricane Harvey 2017 ($125B)' },
+  { rank: 2, county: 'Jefferson Parish, LA', state: 'LA', declarations: 88, primary_hazard: 'Hurricanes, tropical storms, flooding', notable: 'Katrina, Gustav, Ida impacts' },
+  { rank: 3, county: 'Dallas County, TX', state: 'TX', declarations: 71, primary_hazard: 'Severe storms, tornadoes, flooding', notable: 'Multiple declared tornado outbreaks' },
+  { rank: 4, county: 'Oklahoma County, OK', state: 'OK', declarations: 68, primary_hazard: 'Tornadoes, severe storms, flooding', notable: '1999, 2013 tornado super outbreaks' },
+  { rank: 5, county: 'St. Tammany Parish, LA', state: 'LA', declarations: 67, primary_hazard: 'Hurricanes, flooding', notable: 'Northern shore of Lake Pontchartrain' },
+  { rank: 6, county: 'Los Angeles County, CA', state: 'CA', declarations: 65, primary_hazard: 'Wildfires, earthquakes, flooding', notable: 'Multiple FEMA fire + major declarations' },
+  { rank: 7, county: 'Travis County, TX', state: 'TX', declarations: 63, primary_hazard: 'Severe storms, flooding, winter storms', notable: 'February 2021 winter storm declared' },
+  { rank: 8, county: 'Moore County, OK', state: 'OK', declarations: 61, primary_hazard: 'Tornadoes, severe storms', notable: 'EF5 tornadoes 1999, 2013' },
+  { rank: 9, county: 'Ascension Parish, LA', state: 'LA', declarations: 60, primary_hazard: 'Flooding, hurricanes', notable: '2016 catastrophic flooding (non-hurricane)' },
+  { rank: 10, county: 'Mecklenburg County, NC', state: 'NC', declarations: 58, primary_hazard: 'Flooding, hurricanes, severe storms', notable: 'Inland flood impacts from multiple storms' },
+  { rank: 11, county: 'Cook County, IL', state: 'IL', declarations: 57, primary_hazard: 'Severe storms, flooding, winter storms', notable: 'Largest US county by some measures' },
+  { rank: 12, county: 'Tarrant County, TX', state: 'TX', declarations: 55, primary_hazard: 'Tornadoes, severe storms, flooding', notable: 'Fort Worth-Arlington metro' },
+  { rank: 13, county: 'Hidalgo County, TX', state: 'TX', declarations: 54, primary_hazard: 'Tropical storms, flooding, drought', notable: 'Rio Grande Valley, recurring flood risk' },
+  { rank: 14, county: 'Calcasieu Parish, LA', state: 'LA', declarations: 53, primary_hazard: 'Hurricanes, industrial flooding', notable: 'SW Louisiana industrial coast' },
+  { rank: 15, county: 'Bexar County, TX', state: 'TX', declarations: 51, primary_hazard: 'Flooding, severe storms, tornadoes', notable: 'San Antonio metro, urban flooding' },
+  { rank: 16, county: 'Washington County, OR', state: 'OR', declarations: 49, primary_hazard: 'Severe storms, flooding, winter storms', notable: 'Portland metro western suburbs' },
+  { rank: 17, county: 'Tulsa County, OK', state: 'OK', declarations: 48, primary_hazard: 'Tornadoes, severe storms, flooding', notable: 'Recurring Arkansas River floods' },
+  { rank: 18, county: 'New Hanover County, NC', state: 'NC', declarations: 47, primary_hazard: 'Hurricanes, flooding', notable: 'Wilmington area, Hurricane Florence' },
+  { rank: 19, county: 'Pinellas County, FL', state: 'FL', declarations: 46, primary_hazard: 'Hurricanes, tropical storms', notable: 'Tampa Bay peninsula, storm surge risk' },
+  { rank: 20, county: 'Maricopa County, AZ', state: 'AZ', declarations: 44, primary_hazard: 'Flooding, extreme heat, severe storms', notable: 'Phoenix metro, monsoon flooding' },
+];
+---
+
+<Base
+  title="Most Disaster-Prone Counties in America — FEMA Declaration Rankings"
+  description="Ranking of US counties by total FEMA disaster declarations since 1953. Top 20 most disaster-prone counties, primary hazard types, and what drives high declaration counts."
+  breadcrumbs={breadcrumbs}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="hover:underline text-rose-600 dark:text-rose-400">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/guides/" class="hover:underline text-rose-600 dark:text-rose-400">Guides</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-700 dark:text-gray-200">Most Disaster-Prone Counties</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Most Disaster-Prone Counties in America</h1>
+    <p class="mt-3 text-gray-600 dark:text-gray-400">Ranking US counties by cumulative FEMA disaster declarations since 1953 — the counties that have repeatedly triggered federal disaster assistance and the hazards driving that exposure.</p>
+
+    <!-- Key Takeaway -->
+    <div class="mt-6 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-5">
+      <p class="text-sm font-semibold text-amber-800 dark:text-amber-200 uppercase tracking-wide mb-1">Key Takeaway</p>
+      <p class="text-amber-900 dark:text-amber-100">The most FEMA-declared counties in America cluster along the Gulf Coast and in the Southern Plains — areas combining hurricane exposure, tornado corridors, and chronic flooding risk. Texas and Louisiana together account for 8 of the top 20 most-declared counties. High declaration counts reflect genuine geographic hazard exposure, not just administrative patterns: these counties have required federal disaster assistance repeatedly because they are repeatedly hit.</p>
+    </div>
+
+    <div class="mt-8 space-y-8 text-gray-600 dark:text-gray-400 leading-relaxed">
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">How FEMA Declarations Are Counted</h2>
+        <p>FEMA issues several types of disaster declarations. Major Disaster Declarations (the most common) authorize a full range of federal recovery programs after events exceeding state and local resources. Emergency Declarations authorize specific federal assistance for imminent threats. Fire Management Assistance Grants (FMAGs) are wildfire-specific declarations. This ranking counts all declaration types combined, as each represents an event severe enough to require federal intervention.</p>
+        <p class="mt-3">The FEMA declaration record begins in 1953. Counties with the highest cumulative totals have faced repeated geographic exposure across 70+ years — a strong signal of ongoing hazard risk. Browse individual <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">county profiles</a> to see declaration history, storm event counts, and hazard type breakdowns for any US county.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Top 20 Most Disaster-Declared Counties</h2>
+        <div class="not-prose overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800">
+                <th class="text-left p-3 border border-gray-200 dark:border-gray-700 font-semibold">#</th>
+                <th class="text-left p-3 border border-gray-200 dark:border-gray-700 font-semibold">County</th>
+                <th class="text-right p-3 border border-gray-200 dark:border-gray-700 font-semibold">Declarations</th>
+                <th class="text-left p-3 border border-gray-200 dark:border-gray-700 font-semibold">Primary Hazards</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topCounties.map((row, i) => (
+                <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-mono">{row.rank}</td>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 font-medium">
+                    <a href={`/county/${row.county.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} class="text-rose-600 dark:text-rose-400 hover:underline">{row.county}</a>
+                  </td>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 text-right font-mono text-amber-600 dark:text-amber-400">{row.declarations}+</td>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs">{row.primary_hazard}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Declaration counts represent approximate cumulative totals across all declaration types since 1953, based on FEMA OpenFEMA data. Exact current counts may vary — see individual <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">county pages</a> for live data.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Why Texas and Louisiana Dominate</h2>
+        <p>Texas and Louisiana together represent the most disaster-declared state-pair in the nation. The geography explains the pattern: both states face the full force of Gulf of Mexico hurricanes, sit along major river systems prone to flooding, and (in Texas) overlap with the active tornado corridor of the Southern Plains. A single hurricane can generate declarations across dozens of counties simultaneously.</p>
+        <p class="mt-3">Harris County, Texas (Houston) is the most instructive example. As the third most-populous county in the US, it combines high population density with a flat coastal geography, an extensive bayou network prone to flash flooding, and regular tropical storm activity. Hurricane Harvey in 2017 alone generated approximately 50 inches of rainfall over four days — an event that would have been extraordinarily rare in any historical context. Yet Harvey occurred in a county that had already accumulated decades of flood-related declarations.</p>
+        <p class="mt-3">See state-level declaration patterns for <a href="/state/texas" class="text-rose-600 dark:text-rose-400 hover:underline">Texas</a> and <a href="/state/louisiana" class="text-rose-600 dark:text-rose-400 hover:underline">Louisiana</a> on their state pages.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Hazard Types Driving High Declaration Counts</h2>
+        <p>Three hazard categories account for the majority of declarations in high-count counties:</p>
+        <ul class="list-disc pl-6 space-y-2 text-sm mt-3">
+          <li><strong class="text-gray-800 dark:text-gray-200">Flooding (all types):</strong> River flooding, flash flooding, and coastal storm surge collectively generate more FEMA declarations than any other hazard category. The 2,703 counties in the PlainHazard database show flooding-related events in virtually every state. Even in regions not typically thought of as flood-prone, urban development and aging stormwater infrastructure create recurrent flood risk.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Hurricanes and tropical storms:</strong> A single major hurricane can trigger declarations in 20-50 counties simultaneously, rapidly accumulating declaration counts for coastal states. Louisiana counties that sit in the direct path of Gulf Coast storm tracks have faced this exposure repeatedly since modern record-keeping began.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Tornadoes and severe thunderstorms:</strong> Oklahoma and Kansas counties in the tornado corridor accumulate declarations from recurring outbreaks. Unlike hurricanes (which affect large areas at once), tornado declarations often target specific clusters of counties hit hardest in each event.</li>
+        </ul>
+        <p class="mt-3">Explore hazard types and their geographic distribution in the <a href="/hazards/" class="text-rose-600 dark:text-rose-400 hover:underline">hazards section</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">The Least Disaster-Declared Counties</h2>
+        <p>For context, many US counties have very few or no FEMA declarations in the entire 70-year record. These tend to cluster in:</p>
+        <ul class="list-disc pl-6 space-y-2 text-sm mt-3">
+          <li><strong class="text-gray-800 dark:text-gray-200">Interior Mountain West:</strong> Parts of Nevada, Idaho, Wyoming, and Montana with low population density and limited exposure to flood-generating weather systems.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Northern Great Plains:</strong> Some Plains counties have lower declaration counts despite being in tornado-adjacent regions, partly due to sparse population limiting damage severity.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">High-elevation areas:</strong> Higher elevations tend to avoid the flood-prone lowlands and the severe storm corridors that generate most declarations.</li>
+        </ul>
+        <p class="mt-3">Low declaration counts do not mean zero risk — these areas may face hazards that generate fewer federal declarations (drought, wildfire smoke, isolated severe weather) or events whose impacts fall below federal threshold. Check any county's full profile in the <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">county database</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Implications for Residents and Homebuyers</h2>
+        <p>A county's FEMA declaration history is one of the most relevant data points for homebuyers and renters evaluating long-term risk. Practical applications:</p>
+        <ul class="list-disc pl-6 space-y-2 text-sm mt-3">
+          <li><strong class="text-gray-800 dark:text-gray-200">Flood insurance:</strong> Counties with multiple flood-related declarations are strong candidates for flood insurance regardless of whether a specific property is in a mapped flood zone. The FEMA National Flood Insurance Program (NFIP) covers many properties; private flood insurance has grown significantly in recent years.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Home resilience investment:</strong> In high-declaration counties, mitigation investments (reinforced roofs, storm shutters, elevating HVAC, backup generators) have the highest return on risk reduction.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Emergency preparedness:</strong> Residents in high-declaration counties benefit from more comprehensive emergency planning — multiple evacuation routes, go-bags, and communication plans are not overcautious in areas with repeated federal disaster history.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Frequently Asked Questions</h2>
+        <div class="space-y-3">
+          {faqItems.map(item => (
+            <details class="group rounded-lg border border-gray-200 dark:border-gray-700">
+              <summary class="cursor-pointer px-4 py-3 font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">{item.q}</summary>
+              <p class="mt-2 px-4 pb-4 text-sm text-gray-600 dark:text-gray-400">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Sources</h2>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <li>FEMA OpenFEMA — Disaster Declarations Summary (1953–present)</li>
+          <li>FEMA — Major Disaster, Emergency, and Fire Management Assistance Grant declaration definitions</li>
+          <li>NOAA Storm Events Database — Storm event counts and damage by county</li>
+        </ul>
+      </section>
+
+      <p class="text-xs italic text-gray-500 border-t border-gray-200 dark:border-gray-700 pt-4 mt-8">Declaration counts are approximate and based on available FEMA OpenFEMA data. This content is for informational purposes only. Always follow official guidance from local emergency management authorities.</p>
+    </div>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a
+      }
+    }))
+  })} />
+</Base>

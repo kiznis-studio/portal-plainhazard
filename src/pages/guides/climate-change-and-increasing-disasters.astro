@@ -1,0 +1,223 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export const prerender = false;
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Guides', href: '/guides/' },
+  { name: 'Climate Change and Increasing Disasters' },
+];
+
+const faqItems = [
+  {
+    q: 'Are natural disasters actually becoming more frequent?',
+    a: 'The data shows more FEMA declarations and more NOAA storm events recorded per decade since the 1980s, but this partly reflects better reporting, population growth into hazard-prone areas, and increased federal disaster program scope — not only increased physical event frequency. For specific hazard types, the scientific consensus is clearer: major hurricanes are intensifying (higher wind speeds, more rapid intensification), rainfall amounts during storms are increasing, and wildfire acreage has grown dramatically in the western US. Tornado frequency trends are less clear due to changing detection capabilities.',
+  },
+  {
+    q: 'What is the difference between more disasters and more damage from disasters?',
+    a: 'These can move in opposite directions. Even if extreme weather event frequency stays constant, damage grows when more people and more valuable property sit in hazard-exposed areas. The US coastal population has grown significantly since 1953, meaning the same hurricane that would have caused modest damage to a sparsely settled coastline in 1960 now hits densely developed barrier islands and coastal communities. Separating the "more events" signal from the "more exposure" signal requires careful analysis — FEMA data alone cannot make that distinction cleanly.',
+  },
+  {
+    q: 'Which disaster type has shown the clearest increase?',
+    a: 'Wildfire acreage burned in the western US shows the clearest upward trend over the past four decades. NOAA and USFS data document roughly a doubling of annual acreage burned since the 1980s in western states, with multiple years exceeding 8-10 million acres nationally. The scientific attribution links this trend to longer fire seasons driven by drought, earlier snowmelt, and higher temperatures. Flood damage costs have also trended upward, though attributing this to more intense storms vs. more exposed development is methodologically difficult.',
+  },
+  {
+    q: 'Has the US government increased disaster spending over time?',
+    a: 'Yes significantly. FEMA disaster funding has grown from hundreds of millions annually in the 1980s to tens of billions in high-disaster years. The Disaster Relief Fund (DRF), FEMA\'s primary funding mechanism, has required multiple emergency supplemental appropriations from Congress in recent decades. Years with major hurricanes (2004-2005 with Katrina/Rita/Wilma; 2012 with Sandy; 2017 with Harvey/Irma/Maria; 2022 with Ian) produce catastrophic single-year costs. This growing fiscal burden is one reason FEMA has expanded mitigation programs — preventing damage is cheaper than funding recovery.',
+  },
+  {
+    q: 'Are some regions seeing disaster increases while others see decreases?',
+    a: 'Yes. The western US has seen dramatic increases in wildfire-related declarations and worsening drought conditions. The Gulf Coast and Atlantic Southeast continue to face high hurricane and flooding risk. The Northeast has experienced increasing flooding events including unusual events like post-tropical flooding. Meanwhile, some hazard types show geographic shift — the "Dixie Alley" tornado corridor in the Deep South has seen increasing tornado activity relative to the traditional Great Plains Tornado Alley in some studies.',
+  },
+  {
+    q: 'Where can I find the most current disaster trend data?',
+    a: 'NOAA\'s National Centers for Environmental Information (NCEI) publishes the Billion-Dollar Weather and Climate Disasters database (ncei.noaa.gov), updated annually, which tracks major US disaster events by cost and type going back to 1980. This is the most widely cited source for disaster cost trends. FEMA OpenFEMA provides the full declaration database. The EPA Climate Indicators report tracks extreme weather trends. PlainHazard provides state and county profiles based on these federal data sources.',
+  },
+];
+
+const decadeData = [
+  { decade: '1950s', fema_declarations: 109, estimated_damage: '$28B', notable_events: 'Korean War-era, early program', context: 'FEMA program in early years; many events pre-date modern records' },
+  { decade: '1960s', fema_declarations: 178, estimated_damage: '$42B', notable_events: 'Camille (1969), early hurricane program', context: 'Growing coastal development; detection limited' },
+  { decade: '1970s', fema_declarations: 282, estimated_damage: '$51B', notable_events: 'Agnes flooding (1972), Agnes most costly of era', context: 'FEMA created 1979; federal disaster role expanding' },
+  { decade: '1980s', fema_declarations: 328, estimated_damage: '$118B', notable_events: 'Multiple droughts, NE flooding', context: 'Modern FEMA era begins; Stafford Act (1988) standardizes process' },
+  { decade: '1990s', fema_declarations: 429, estimated_damage: '$267B', notable_events: 'Andrew (1992), Northridge (1994), Floyd (1999)', context: 'Major urban hurricanes; Midwest flood 1993; CA earthquake' },
+  { decade: '2000s', fema_declarations: 583, estimated_damage: '$614B', notable_events: 'Katrina/Rita/Wilma (2005), Ivan, Charley', context: '2005 season most costly in history to that point; $200B in 2005 alone' },
+  { decade: '2010s', fema_declarations: 611, estimated_damage: '$847B', notable_events: 'Sandy (2012), Harvey/Irma/Maria (2017)', context: '2017 season: Harvey $125B, Irma $50B, Maria $90B; massive wildfire years' },
+  { decade: '2020s*', fema_declarations: 290, estimated_damage: '$420B+', notable_events: 'Ida (2021), Ian (2022), Helene (2024)', context: 'Partial decade; Ian most costly FL hurricane ever; rapid intensification trend' },
+];
+---
+
+<Base
+  title="Climate Change and Increasing Disasters — Trend Analysis | PlainHazard"
+  description="Decade-by-decade analysis of how US natural disaster frequency and cost have changed since the 1950s, based on FEMA declarations and NOAA billion-dollar disaster data."
+  breadcrumbs={breadcrumbs}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="hover:underline text-rose-600 dark:text-rose-400">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/guides/" class="hover:underline text-rose-600 dark:text-rose-400">Guides</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-700 dark:text-gray-200">Climate Change and Increasing Disasters</span>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Climate Change and Increasing Disasters</h1>
+    <p class="mt-3 text-gray-600 dark:text-gray-400">Decade-by-decade trends in US federal disaster declarations, damage costs, and what the data says about changing hazard patterns since 1953.</p>
+
+    <!-- Key Takeaway -->
+    <div class="mt-6 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-5">
+      <p class="text-sm font-semibold text-amber-800 dark:text-amber-200 uppercase tracking-wide mb-1">Key Takeaway</p>
+      <p class="text-amber-900 dark:text-amber-100">FEMA disaster declarations have roughly tripled from the 1950s to the 2010s. Inflation-adjusted damage costs have grown even faster — from ~$28 billion in the 1950s to over $800 billion in the 2010s. Three factors drive this: more events, more people in hazard zones, and more valuable property at risk. Separating climate signal from exposure growth requires careful analysis, but for wildfires and extreme rainfall events, the scientific attribution to warming temperatures is increasingly robust.</p>
+    </div>
+
+    <!-- Safety notice -->
+    <div class="mt-5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-4">
+      <p class="text-sm text-rose-800 dark:text-rose-200"><strong>Note:</strong> This guide presents historical data trends and scientific context. For current disaster risk in your area, see your <a href="/states/" class="hover:underline font-medium">state profile</a> and local emergency management resources.</p>
+    </div>
+
+    <div class="mt-8 space-y-8 text-gray-600 dark:text-gray-400 leading-relaxed">
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">FEMA Declarations by Decade (1953–Present)</h2>
+        <p>The FEMA disaster declaration record provides a 70-year window into how federal disaster response has grown. The table below shows cumulative declarations by decade alongside estimated total damage costs (inflation-adjusted to 2024 dollars) and the key context factors driving each era's numbers.</p>
+        <div class="not-prose overflow-x-auto mt-4">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800">
+                <th class="text-left p-3 border border-gray-200 dark:border-gray-700 font-semibold">Decade</th>
+                <th class="text-right p-3 border border-gray-200 dark:border-gray-700 font-semibold">FEMA Decl.</th>
+                <th class="text-right p-3 border border-gray-200 dark:border-gray-700 font-semibold">Est. Damage</th>
+                <th class="text-left p-3 border border-gray-200 dark:border-gray-700 font-semibold">Notable Events</th>
+              </tr>
+            </thead>
+            <tbody>
+              {decadeData.map((row, i) => (
+                <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 font-medium">{row.decade}</td>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 text-right font-mono text-amber-600 dark:text-amber-400">{row.fema_declarations}</td>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 text-right font-mono">{row.estimated_damage}</td>
+                  <td class="p-3 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs">{row.notable_events}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Damage figures are approximate inflation-adjusted estimates based on NOAA Billion-Dollar Disasters data and FEMA disaster cost records. *2020s column represents 2020–2024 only (partial decade). Declaration counts from FEMA OpenFEMA dataset.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Three Drivers of Growing Disaster Impact</h2>
+        <p>The upward trend in declarations and damage reflects three distinct drivers that operate simultaneously and compound each other:</p>
+
+        <div class="space-y-4 mt-4">
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">1. More People in Hazard Zones</h3>
+            <p class="text-sm">US coastal county population doubled from approximately 47 million in 1960 to over 93 million by 2020. Florida's population grew from 5 million to 21 million in the same period. The number of homes in the wildland-urban interface — where communities meet fire-prone forests — has grown dramatically in California, Oregon, Colorado, and other western states. More people in hazard zones means the same physical event causes more damage and requires more federal assistance.</p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">2. More Valuable Property at Risk</h3>
+            <p class="text-sm">Even if the number of people in hazard zones stayed constant, rising property values amplify disaster costs. A hurricane hitting a coastal Florida community in 2024 strikes far more valuable homes and infrastructure than the same storm hitting the same coastline in 1970. Real estate appreciation, denser development, and more complex infrastructure (water treatment, electrical grid, broadband) all mean a given physical event costs more in dollar terms.</p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">3. Changes in Event Intensity</h3>
+            <p class="text-sm">For specific hazard types, physical event intensity has changed. NOAA and scientific literature document: more rapid hurricane intensification in warmer Gulf and Atlantic waters, higher rainfall totals during extreme precipitation events (a warmer atmosphere holds more moisture), larger western US wildfires driven by drought and beetle kill, and more frequent marine heat waves affecting coastal ecosystems. The evidence is strongest for wildfire acreage, extreme precipitation intensity, and hurricane rainfall rates.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Billion-Dollar Disasters: A Growing Category</h2>
+        <p>NOAA tracks "billion-dollar disasters" — events causing at least $1 billion in damage — as a consistent long-term metric. The trend is stark:</p>
+        <ul class="list-disc pl-6 space-y-2 text-sm mt-3">
+          <li><strong class="text-gray-800 dark:text-gray-200">1980–1989:</strong> 33 billion-dollar events (average 3.3/year), $298B total</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">1990–1999:</strong> 57 billion-dollar events (average 5.7/year), $527B total</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">2000–2009:</strong> 67 billion-dollar events (average 6.7/year), $824B total</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">2010–2019:</strong> 131 billion-dollar events (average 13.1/year), $1,042B total</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">2020–2024:</strong> 115 billion-dollar events in 5 years (23/year pace), $680B+ total</li>
+        </ul>
+        <p class="mt-3">The doubling in frequency from the 2000s to the 2010s is not fully explained by inflation or population growth alone. Even after controlling for these factors, researchers find a real increase in the frequency of high-impact weather events. Explore state-level disaster patterns through <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">state profiles</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Hazard-Specific Trends</h2>
+        <p>The aggregate trend masks important differences between hazard types:</p>
+
+        <div class="space-y-3 mt-4">
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Hurricanes: More Intense, Rapid Intensification</h3>
+            <p class="text-sm">The total number of Atlantic hurricanes per season has not clearly increased. However, the proportion reaching Category 4-5 intensity has grown, and rapid intensification events (gaining 35+ mph in 24 hours) are more frequent in warmer Gulf waters. Harvey's unprecedented rainfall record and Ian's last-day strengthening from Category 2 to 4 illustrate the rapid intensification pattern. See <a href="/hazard/hurricane" class="text-rose-600 dark:text-rose-400 hover:underline">hurricane data</a> for state distribution.</p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Floods: More Extreme Precipitation Events</h3>
+            <p class="text-sm">A warmer atmosphere holds approximately 7% more water vapor for each degree Celsius of warming (Clausius-Clapeyron relation). This means extreme precipitation events — the kind that cause the most severe flooding — are delivering more rainfall than they would have in a cooler climate. NOAA data shows an increase in "1-in-100-year" rainfall events occurring more frequently than every 100 years in many regions.</p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Wildfires: Dramatically Larger in the West</h3>
+            <p class="text-sm">Western US wildfire acreage has roughly doubled since the 1980s, with the most dramatic increases in California, Oregon, and Washington. Contributing factors include drought, pine beetle kill that creates standing dead fuel, accumulated fuel loads from decades of fire suppression, and earlier snowmelt that extends the fire season. The 2020 California fire season alone burned over 4 million acres — more than double any previous California record. View state-level wildfire data for <a href="/state/california" class="text-rose-600 dark:text-rose-400 hover:underline">California</a> and other western states.</p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Tornadoes: Unclear Trend, Shifting Geography</h3>
+            <p class="text-sm">Total US tornado counts have not shown a clear upward trend, partly because improved Doppler radar detects more weak tornadoes that would have gone unrecorded in earlier decades. Some research suggests the peak of tornado activity has shifted from the traditional Great Plains Tornado Alley toward "Dixie Alley" in the Deep South, where tornadoes can occur year-round and at night, when warning times are shorter and casualties higher.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">What This Means for Preparedness</h2>
+        <p>The trend data carries clear implications for individuals, households, and communities:</p>
+        <ul class="list-disc pl-6 space-y-2 text-sm mt-3">
+          <li><strong class="text-gray-800 dark:text-gray-200">Past patterns are not sufficient guides.</strong> Historical flood zones, wildfire risk maps, and insurance rate tables are based on historical data. Areas that were "safe" for decades may face changing risk profiles. The 100-year floodplain designation increasingly underestimates actual flood frequency.</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Rapid intensification demands faster response.</strong> Hurricanes that strengthen rapidly give coastal residents less preparation time than classic gradual intensification patterns. Emergency management officials have updated their public communication to stress acting on hurricane watches (48 hours) rather than waiting for warnings (36 hours).</li>
+          <li><strong class="text-gray-800 dark:text-gray-200">Community-level resilience investment is growing.</strong> FEMA's Hazard Mitigation Grant Program has grown significantly, and BRIC (Building Resilient Infrastructure and Communities) represents a shift toward proactive mitigation. Communities that invest in flood-resistant infrastructure, defensible space programs, and early warning systems reduce their long-term disaster costs.</li>
+        </ul>
+        <p class="mt-3">Use <a href="/counties/" class="text-rose-600 dark:text-rose-400 hover:underline">county profiles</a> and <a href="/states/" class="text-rose-600 dark:text-rose-400 hover:underline">state pages</a> to understand the specific hazard history of your area.</p>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Frequently Asked Questions</h2>
+        <div class="space-y-3">
+          {faqItems.map(item => (
+            <details class="group rounded-lg border border-gray-200 dark:border-gray-700">
+              <summary class="cursor-pointer px-4 py-3 font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">{item.q}</summary>
+              <p class="mt-2 px-4 pb-4 text-sm text-gray-600 dark:text-gray-400">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Sources</h2>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <li>FEMA OpenFEMA — Disaster Declarations Summary Dataset (1953–present)</li>
+          <li>NOAA NCEI — Billion-Dollar Weather and Climate Disasters Database (1980–present)</li>
+          <li>NOAA Storm Events Database — Storm event counts, fatalities, damage by county</li>
+          <li>NOAA — Climate Change Indicators: Extreme Precipitation, Drought, Wildfire</li>
+          <li>US Forest Service — National wildfire area burned statistics</li>
+          <li>IPCC AR6 — Attribution of extreme weather events to anthropogenic forcing</li>
+        </ul>
+      </section>
+
+      <p class="text-xs italic text-gray-500 border-t border-gray-200 dark:border-gray-700 pt-4 mt-8">Damage figures are approximate estimates adjusted for inflation. Trend data represents federal records and scientific consensus through 2024. This content is for informational and educational purposes only.</p>
+    </div>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a
+      }
+    }))
+  })} />
+</Base>

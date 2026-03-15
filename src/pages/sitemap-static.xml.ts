@@ -12,6 +12,12 @@ export const GET: APIRoute = async () => {
     '/rankings/deadliest',
     '/privacy',
     '/about',
+    '/guides',
+    '/guides/understanding-disaster-data',
+    '/guides/natural-hazard-risk-by-region',
+    '/guides/preparing-for-natural-disasters',
+    '/guides/most-disaster-prone-counties',
+    '/guides/climate-change-and-increasing-disasters',
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
